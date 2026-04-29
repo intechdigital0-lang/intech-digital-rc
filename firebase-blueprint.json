@@ -1,0 +1,54 @@
+{
+  "entities": {
+    "PortfolioItem": {
+      "title": "Portfolio Item",
+      "description": "A project realization displayed in the portfolio section",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "category": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "category", "imageUrl", "createdAt"]
+    },
+    "AppSetting": {
+      "title": "App Setting",
+      "description": "Global settings and content for the application",
+      "type": "object",
+      "properties": {
+        "heroImageUrl": { "type": "string" },
+        "whyUsImageUrl": { "type": "string" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "Testimonial": {
+      "title": "Testimonial",
+      "description": "Client feedback displayed on the home page",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "role": { "type": "string" },
+        "comment": { "type": "string" },
+        "rating": { "type": "number" },
+        "avatarUrl": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "role", "comment", "rating", "avatarUrl", "createdAt"]
+    }
+  },
+  "firestore": {
+    "portfolio": {
+      "schema": "PortfolioItem",
+      "description": "Collection of projects realized by the agency"
+    },
+    "settings": {
+      "schema": "AppSetting",
+      "description": "Global application configuration"
+    },
+    "testimonials": {
+      "schema": "Testimonial",
+      "description": "Client reviews and feedback"
+    }
+  }
+}

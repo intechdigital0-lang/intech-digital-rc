@@ -1,0 +1,135 @@
+import React from 'react';
+import { motion } from 'motion/react';
+import { MessageSquare, Mail, MapPin, Send } from 'lucide-react';
+import { getWhatsAppLink, WHATSAPP_NUMBER, EMAIL, ADDRESS } from '../../constants';
+
+const Contact = () => {
+  return (
+    <section id="contact" className="py-24 bg-slate-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="bg-brand-primary rounded-[3rem] overflow-hidden shadow-2xl relative">
+          {/* Patterns */}
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+          <div className="absolute bottom-0 left-0 w-64 h-64 bg-brand-secondary/20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
+
+          <div className="grid lg:grid-cols-2 relative z-10">
+            <div className="p-12 lg:p-20 text-white text-center flex flex-col items-center justify-center">
+              <h2 className="text-4xl md:text-5xl font-display font-bold mb-8">
+                Prêt à démarrer <br /> votre projet ?
+              </h2>
+              <p className="text-white/80 text-lg mb-12 max-w-md leading-relaxed mx-auto">
+                Contactez Intech Digital DRC aujourd'hui pour discuter de vos idées. Nous sommes là pour vous aider à les concrétiser.
+              </p>
+
+              <div className="space-y-8 w-full max-w-sm">
+                <a
+                  href={getWhatsAppLink('Bonjour Intech Digital DRC, je souhaite démarrer un projet.')}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 group bg-white/5 p-4 rounded-3xl hover:bg-white hover:text-brand-primary transition-all duration-300"
+                >
+                  <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center group-hover:bg-brand-primary group-hover:text-white transition-all duration-300 shrink-0">
+                    <MessageSquare size={24} />
+                  </div>
+                  <div className="text-center sm:text-left">
+                    <div className="text-white/60 text-xs uppercase tracking-widest font-bold group-hover:text-brand-primary/60">WhatsApp</div>
+                    <div className="text-lg font-bold">{WHATSAPP_NUMBER}</div>
+                  </div>
+                </a>
+
+                <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 bg-white/5 p-4 rounded-3xl">
+                  <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center shrink-0">
+                    <Mail size={24} />
+                  </div>
+                  <div className="text-center sm:text-left">
+                    <div className="text-white/60 text-xs uppercase tracking-widest font-bold">Email</div>
+                    <div className="text-lg font-bold break-all">{EMAIL}</div>
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 bg-white/5 p-4 rounded-3xl">
+                  <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center shrink-0">
+                    <MapPin size={24} />
+                  </div>
+                  <div className="text-center sm:text-left">
+                    <div className="text-white/60 text-xs uppercase tracking-widest font-bold">Adresse</div>
+                    <div className="text-lg font-bold">{ADDRESS}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div id="contact-form-container" className="p-12 lg:p-20 bg-white/5 backdrop-blur-sm border-l border-white/10 flex flex-col justify-center">
+              <div className="bg-white p-10 rounded-[2rem] shadow-xl text-slate-900">
+                <h2 id="contact-form-title" className="text-2xl font-bold mb-6">Envoyez-nous un message</h2>
+                <form className="space-y-4" onSubmit={(e) => e.preventDefault()} aria-labelledby="contact-form-title">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label htmlFor="name" className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Nom</label>
+                      <input
+                        id="name"
+                        type="text"
+                        placeholder="Votre nom"
+                        required
+                        aria-required="true"
+                        className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-100 focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20 outline-none transition-all"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label htmlFor="whatsapp" className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">WhatsApp</label>
+                      <input
+                        id="whatsapp"
+                        type="tel"
+                        placeholder="N° WhatsApp"
+                        className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-100 focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20 outline-none transition-all"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <label htmlFor="email" className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Email</label>
+                    <input
+                      id="email"
+                      type="email"
+                      placeholder="Votre email"
+                      required
+                      aria-required="true"
+                      className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-100 focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20 outline-none transition-all"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label htmlFor="message" className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Message</label>
+                    <textarea
+                      id="message"
+                      placeholder="Votre message"
+                      rows={4}
+                      required
+                      aria-required="true"
+                      className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-100 focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20 outline-none transition-all"
+                    ></textarea>
+                  </div>
+                  <button type="submit" className="btn-primary w-full py-4 text-lg" aria-label="Envoyer le message">
+                    Envoyer
+                    <Send size={20} aria-hidden="true" />
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="mt-12 flex justify-center">
+          <a
+            href="/admin"
+            className="flex items-center gap-2 text-slate-400 hover:text-brand-primary transition-colors text-sm font-medium group"
+          >
+            <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center group-hover:bg-brand-primary/10 transition-colors">
+              <Mail size={14} className="group-hover:text-brand-primary" />
+            </div>
+            Connexion Administrateur
+          </a>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default Contact;
