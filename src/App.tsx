@@ -14,6 +14,7 @@ import Testimonials from './components/home/Testimonials';
 import WhyUs from './components/home/WhyUs';
 import Contact from './components/home/Contact';
 import FloatingWhatsApp from './components/ui/FloatingWhatsApp';
+import ScrollToTop from './components/ui/ScrollToTop';
 import AdminDashboard from './components/admin/AdminDashboard';
 
 const HomePage = () => (
@@ -29,6 +30,7 @@ const HomePage = () => (
     </main>
     <Footer />
     <FloatingWhatsApp />
+    <ScrollToTop />
   </div>
 );
 

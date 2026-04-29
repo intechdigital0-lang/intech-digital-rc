@@ -66,10 +66,21 @@ const AdminDashboard = () => {
   const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
+    // Check for cached admin session for "instant" feel
+    const cachedAdmin = sessionStorage.getItem('isAdmin');
+    if (cachedAdmin === 'true') {
+      setIsAdminLocally(true);
+      setLoading(false);
+    }
+
     const unsubscribeAuth = onAuthStateChanged(auth, (u) => {
       setUser(u);
       if (u && isUserAdmin(u.email)) {
         setIsAdminLocally(true);
+        sessionStorage.setItem('isAdmin', 'true');
+      } else if (!u) {
+        setIsAdminLocally(false);
+        sessionStorage.removeItem('isAdmin');
       }
       setLoading(false);
     });
@@ -172,27 +183,32 @@ const AdminDashboard = () => {
     signOut(auth);
     setIsAdminLocally(false);
     setUser(null);
+    sessionStorage.removeItem('isAdmin');
   };
 
   const handleFileUpload = async (file: File, folder: string, callback: (url: string) => void) => {
+    if (!file) return;
     setIsUploading(true);
     let localUrl = '';
+    
     try {
       // Optimistic preview for immediate feedback
       localUrl = URL.createObjectURL(file);
       callback(localUrl);
       
+      console.log(`Starting upload for ${file.name} to ${folder}...`);
       const url = await storageService.uploadImage(file, folder);
+      console.log(`Upload successful: ${url}`);
+      
       callback(url);
       setMessage('Image prête à être enregistrée');
       setTimeout(() => setMessage(''), 3000);
-    } catch (error) {
-      console.error('Upload error:', error);
-      setMessage('Erreur lors du téléchargement de l\'image');
+    } catch (error: any) {
+      console.error('Upload error detail:', error);
+      // Revert optimistic update on failure if desired, or keep showing it and warn
+      setMessage(`Erreur: ${error.message || 'Le téléchargement a échoué'}`);
     } finally {
       setIsUploading(false);
-      // We don't revoke here because the callback might have set state to localUrl and we need it to stay visible
-      // until the real URL replaces it or the component unmounts.
     }
   };
 
@@ -697,28 +713,45 @@ const AdminDashboard = () => {
                           const files = e.target.files;
                           if (files && files.length > 0) {
                             setIsUploading(true);
-                            try {
-                              const fileArray = Array.from(files);
-                              const uploadPromises = fileArray.map((file: File) => 
-                                storageService.uploadImage(file, 'portfolio')
-                              );
-                              const urls = await Promise.all(uploadPromises);
-                              
-                              if (editingItem) {
-                                const imgs = editingItem.images || [];
-                                setEditingItem({...editingItem, images: [...imgs, ...urls]});
-                              } else {
-                                setNewItem({...newItem, images: [...newItem.images, ...urls]});
+                            setMessage(`Téléchargement de ${files.length} photos...`);
+                            
+                            const fileArray = Array.from(files) as File[];
+                            let successCount = 0;
+                            
+                            for (const file of fileArray) {
+                              try {
+                                // Add local preview immediately for each
+                                const tempUrl = URL.createObjectURL(file);
+                                if (editingItem) {
+                                  setEditingItem(prev => prev ? {...prev, images: [...(prev.images || []), tempUrl]} : null);
+                                } else {
+                                  setNewItem(prev => ({...prev, images: [...prev.images, tempUrl]}));
+                                }
+
+                                const url = await storageService.uploadImage(file, 'portfolio');
+                                
+                                // Replace temp URL with final URL
+                                if (editingItem) {
+                                  setEditingItem(prev => {
+                                    if (!prev) return null;
+                                    const filtered = (prev.images || []).filter(img => img !== tempUrl);
+                                    return {...prev, images: [...filtered, url]};
+                                  });
+                                } else {
+                                  setNewItem(prev => {
+                                    const filtered = prev.images.filter(img => img !== tempUrl);
+                                    return {...prev, images: [...filtered, url]};
+                                  });
+                                }
+                                successCount++;
+                              } catch (uploadError) {
+                                console.error('Error uploading individual gallery file:', uploadError);
                               }
-                              
-                              setMessage(`${urls.length} photos ajoutées`);
-                              setTimeout(() => setMessage(''), 3000);
-                            } catch (error) {
-                              console.error('Batch upload error:', error);
-                              setMessage('Erreur de téléchargement');
-                            } finally {
-                              setIsUploading(false);
                             }
+                            
+                            setMessage(`${successCount} photos ajoutées avec succès`);
+                            setIsUploading(false);
+                            setTimeout(() => setMessage(''), 3000);
                           }
                         }}
                         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
@@ -734,10 +767,10 @@ const AdminDashboard = () => {
 
                 <button 
                   type="submit" 
-                  disabled={isUploading || (editingItem ? editingItem.imageUrl.startsWith('blob:') : newItem.imageUrl.startsWith('blob:'))} 
-                  className={`btn-primary w-full py-3 ${isUploading || (editingItem ? editingItem.imageUrl.startsWith('blob:') : newItem.imageUrl.startsWith('blob:')) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  disabled={isUploading || (editingItem ? (editingItem.imageUrl.startsWith('blob:') || editingItem.images?.some(img => img.startsWith('blob:'))) : (newItem.imageUrl.startsWith('blob:') || newItem.images.some(img => img.startsWith('blob:'))))} 
+                  className={`btn-primary w-full py-3 ${isUploading || (editingItem ? (editingItem.imageUrl.startsWith('blob:') || editingItem.images?.some(img => img.startsWith('blob:'))) : (newItem.imageUrl.startsWith('blob:') || newItem.images.some(img => img.startsWith('blob:')))) ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
-                  {(isUploading || (editingItem ? editingItem.imageUrl.startsWith('blob:') : newItem.imageUrl.startsWith('blob:'))) ? <Loader2 className="animate-spin" size={18} /> : (editingItem ? <Save size={18} /> : <Plus size={18} />)}
+                  {(isUploading || (editingItem ? (editingItem.imageUrl.startsWith('blob:') || editingItem.images?.some(img => img.startsWith('blob:'))) : (newItem.imageUrl.startsWith('blob:') || newItem.images.some(img => img.startsWith('blob:'))))) ? <Loader2 className="animate-spin" size={18} /> : (editingItem ? <Save size={18} /> : <Plus size={18} />)}
                   {editingItem ? 'Enregistrer' : 'Publier'}
                 </button>
               </form>

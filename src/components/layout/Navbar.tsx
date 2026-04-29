@@ -31,14 +31,27 @@ const Navbar = () => {
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" aria-label="Main navigation">
         <div className="flex justify-between items-center">
           <div className="flex items-center">
-            <a href="#" className="flex items-center gap-2 group">
-              <div className="w-10 h-10 bg-brand-secondary rounded-xl flex items-center justify-center transform group-hover:rotate-12 transition-transform duration-300 border border-brand-primary/20">
+            <motion.a href="#" className="flex items-center gap-2 group" whileHover="logoHover">
+              <motion.div 
+                variants={{
+                  logoHover: { 
+                    y: [0, -8, 0],
+                    rotate: [0, -10, 10, 0],
+                  }
+                }}
+                transition={{ 
+                  duration: 0.5,
+                  ease: "easeInOut",
+                  times: [0, 0.4, 0.7, 1]
+                }}
+                className="w-10 h-10 bg-brand-secondary rounded-xl flex items-center justify-center border border-brand-primary/20"
+              >
                 <span className="text-brand-primary font-bold text-xl font-display">I</span>
-              </div>
+              </motion.div>
               <span className="text-xl font-bold font-display tracking-tight text-slate-900">
                 Intech<span className="text-brand-primary"> Digital DRC</span>
               </span>
-            </a>
+            </motion.a>
           </div>
 
           <div className="hidden md:flex items-center space-x-8">

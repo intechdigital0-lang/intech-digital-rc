@@ -14,7 +14,7 @@ const WhyUs = () => {
   const highlights = [
     {
       title: 'Expertise Locale',
-      desc: 'Nous comprenons le marché de Kinshasa et les besoins réels des entreprises congolaises.',
+      desc: 'Nous comprenons le marché selon votre localisation et les besoins réels de votre entreprise et nous optimisons le travail en connaissance de votre cible',
       icon: <Target className="text-white" />,
       color: 'bg-indigo-500'
     },

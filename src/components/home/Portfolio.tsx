@@ -44,9 +44,12 @@ const Portfolio = () => {
     setIsZoomed(!isZoomed);
   };
 
+  const [direction, setDirection] = useState(0);
+
   const nextImage = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!selectedItem) return;
+    setDirection(1);
     setIsZoomed(false);
     const gallery = [selectedItem.imageUrl, ...(selectedItem.images || [])];
     setCurrentImageIdx((prev) => (prev + 1) % gallery.length);
@@ -55,9 +58,36 @@ const Portfolio = () => {
   const prevImage = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!selectedItem) return;
+    setDirection(-1);
     setIsZoomed(false);
     const gallery = [selectedItem.imageUrl, ...(selectedItem.images || [])];
     setCurrentImageIdx((prev) => (prev - 1 + gallery.length) % gallery.length);
+  };
+
+  const goToImage = (idx: number) => {
+    setDirection(idx > currentImageIdx ? 1 : -1);
+    setCurrentImageIdx(idx);
+    setIsZoomed(false);
+  };
+
+  const variants = {
+    enter: (direction: number) => ({
+      x: direction > 0 ? 1000 : -1000,
+      opacity: 0,
+      scale: 0.95
+    }),
+    center: {
+      zIndex: 1,
+      x: 0,
+      opacity: 1,
+      scale: 1
+    },
+    exit: (direction: number) => ({
+      zIndex: 0,
+      x: direction < 0 ? 1000 : -1000,
+      opacity: 0,
+      scale: 1.05
+    })
   };
 
   const currentGallery = selectedItem ? [selectedItem.imageUrl, ...(selectedItem.images || [])] : [];
@@ -179,12 +209,15 @@ const Portfolio = () => {
                   <div className="absolute top-4 right-4 w-10 h-10 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity">
                     <Maximize2 size={20} aria-hidden="true" />
                   </div>
-                  <span className="text-brand-primary text-xs font-bold uppercase tracking-widest mb-2">{item.category}</span>
-                  <h3 className="text-white text-xl font-bold mb-2">{item.title}</h3>
-                  <p className="text-white/60 text-sm opacity-0 group-hover:opacity-100 transition-opacity">
-                    {item.images && item.images.length > 0 ? `${item.images.length + 1} photos` : '1 photo'}
-                  </p>
-                  <div className="w-10 h-px bg-white/50 group-hover:w-full transition-all duration-500 mt-4" />
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className="text-brand-primary text-xs font-bold uppercase tracking-widest">{item.category}</span>
+                    <span className="w-1 h-1 bg-white/30 rounded-full" />
+                    <span className="text-white/50 text-[10px] font-bold uppercase tracking-widest">
+                      {item.images && item.images.length > 0 ? `${item.images.length + 1} photos` : '1 photo'}
+                    </span>
+                  </div>
+                  <h3 className="text-white text-xl font-bold">{item.title}</h3>
+                  <div className="w-10 h-px bg-white/30 group-hover:w-full transition-all duration-500 mt-4" />
                 </div>
               </motion.div>
             ))}
@@ -211,22 +244,27 @@ const Portfolio = () => {
               <X size={32} aria-hidden="true" />
             </button>
 
-            <div className={`relative w-full max-w-5xl flex flex-col items-center justify-center gap-8 transition-all duration-500 ${isZoomed ? 'h-full' : ''}`} onClick={(e) => e.stopPropagation()}>
-              <div className={`relative w-full flex items-center justify-center ${isZoomed ? 'flex-1' : 'aspect-video'}`}>
-                <AnimatePresence mode="wait">
+            <div className={`relative w-full max-w-5xl flex flex-col items-center justify-center gap-8 transition-all duration-700 ease-out ${isZoomed ? 'h-full' : ''}`} onClick={(e) => e.stopPropagation()}>
+              <div className={`relative w-full flex items-center justify-center overflow-hidden ${isZoomed ? 'flex-1' : 'aspect-video'}`}>
+                <AnimatePresence initial={false} custom={direction}>
                   <motion.img
                     key={currentImageIdx}
                     src={currentGallery[currentImageIdx]}
-                    alt={`${selectedItem.title} - Image ${currentImageIdx + 1}`}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ 
-                      opacity: 1, 
-                      scale: isZoomed ? 1.5 : 1,
+                    custom={direction}
+                    variants={variants}
+                    initial="enter"
+                    animate="center"
+                    exit="exit"
+                    transition={{
+                      x: { type: "spring", stiffness: 300, damping: 30 },
+                      opacity: { duration: 0.3 },
+                      scale: { duration: 0.4 }
                     }}
-                    exit={{ opacity: 0, scale: 1.1 }}
+                    alt={`${selectedItem.title} - Image ${currentImageIdx + 1}`}
                     onClick={toggleZoom}
                     aria-label={isZoomed ? "Réduire l'image" : "Agrandir l'image"}
-                    className={`max-w-full max-h-[70vh] object-contain rounded-2xl shadow-2xl transition-all duration-500 cursor-pointer ${isZoomed ? 'cursor-zoom-out z-50' : 'cursor-zoom-in'}`}
+                    className={`max-w-full max-h-[70vh] object-contain rounded-2xl shadow-[0_32px_64px_-16px_rgba(0,0,0,0.5)] transition-all duration-700 cursor-pointer ${isZoomed ? 'cursor-zoom-out z-50 scale-125' : 'cursor-zoom-in'}`}
+                    referrerPolicy="no-referrer"
                   />
                 </AnimatePresence>
 
@@ -254,15 +292,15 @@ const Portfolio = () => {
                     </div>
 
                     {/* Indicators */}
-                    <div className="absolute -bottom-12 flex gap-2" role="tablist">
+                    <div className="absolute -bottom-12 flex gap-3" role="tablist">
                       {currentGallery.map((_, idx) => (
                         <button 
                           key={idx}
-                          onClick={() => setCurrentImageIdx(idx)}
+                          onClick={() => goToImage(idx)}
                           role="tab"
                           aria-selected={idx === currentImageIdx}
                           aria-label={`Aller à l'image ${idx + 1}`}
-                          className={`w-2 h-2 rounded-full transition-all ${idx === currentImageIdx ? 'bg-brand-primary w-8' : 'bg-white/20'}`}
+                          className={`h-2 rounded-full transition-all duration-500 ${idx === currentImageIdx ? 'bg-brand-primary w-12 shadow-[0_0_12px_rgba(255,204,0,0.5)]' : 'bg-white/10 hover:bg-white/30 w-2'}`}
                         />
                       ))}
                     </div>

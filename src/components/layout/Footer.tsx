@@ -9,7 +9,7 @@ const Footer = () => {
   return (
     <footer className="bg-slate-900 text-white pt-20 pb-10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
           <div className="space-y-6 lg:col-span-1">
             <a href="#" className="flex items-center gap-2">
               <div className="w-10 h-10 bg-brand-secondary rounded-xl flex items-center justify-center border border-brand-primary/20">
@@ -23,7 +23,7 @@ const Footer = () => {
               "Mieux fait, Vite fait"
             </p>
             <p className="text-slate-400 leading-relaxed">
-              Votre partenaire de confiance pour une transformation digitale réussie à Kinshasa et partout en RDC.
+              Votre partenaire de confiance pour une transformation digitale réussie en RDC et partout dans le monde
             </p>
             <div className="flex items-center gap-4">
               {[
@@ -71,15 +71,6 @@ const Footer = () => {
           </div>
 
           <div>
-            <h4 className="text-lg font-bold mb-6">Ressources</h4>
-            <ul className="space-y-4">
-              <li><a href="#" className="text-slate-400 hover:text-white transition-colors">Blog</a></li>
-              <li><a href="#" className="text-slate-400 hover:text-white transition-colors">FAQ</a></li>
-              <li><a href="#" className="text-slate-400 hover:text-white transition-colors">Carrières</a></li>
-            </ul>
-          </div>
-
-          <div>
             <h4 className="text-lg font-bold mb-6">Contactez-nous</h4>
             <ul className="space-y-4">
               <li className="flex gap-4">
@@ -88,7 +79,9 @@ const Footer = () => {
               </li>
               <li className="flex gap-4">
                 <Mail className="text-brand-primary shrink-0" size={20} />
-                <span className="text-slate-400">{EMAIL}</span>
+                <a href={`mailto:${EMAIL}`} className="text-slate-400 hover:text-white transition-colors">
+                  {EMAIL}
+                </a>
               </li>
               <li className="flex gap-4">
                 <MessageCircle className="text-brand-primary shrink-0" size={20} />

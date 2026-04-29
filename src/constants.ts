@@ -1,7 +1,7 @@
 import { Service, PortfolioItem, Testimonial } from './types';
 
 export const WHATSAPP_NUMBER = "+243895409557";
-export const EMAIL = "contact.intechdigitaldrc@gmail.com";
+export const EMAIL = "intechdigital0@gmail.com";
 export const ADDRESS = "Kinshasa, RDC";
 
 export const getWhatsAppLink = (message: string) => {

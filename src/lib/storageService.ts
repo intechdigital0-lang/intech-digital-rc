@@ -15,12 +15,9 @@ export const storageService = {
     let fileToUpload: File | Blob = file;
 
     try {
-      // Compress if it's an image and larger than 1MB
-      if (file.type.startsWith('image/') && file.size > 1024 * 1024) {
+      // ONLY compress if it's an image and actually needs compression (> 500KB)
+      if (file.type.startsWith('image/') && file.size > 500 * 1024) {
         fileToUpload = await imageCompression(file, options);
-      } else if (file.type.startsWith('image/')) {
-        // Light compression for smaller images to ensure they are web-ready
-        fileToUpload = await imageCompression(file, { ...options, maxSizeMB: 0.4 });
       }
     } catch (error) {
       console.warn('Compression failed, uploading original file:', error);

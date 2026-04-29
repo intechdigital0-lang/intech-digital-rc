@@ -1,9 +1,29 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { MessageSquare, Mail, MapPin, Send } from 'lucide-react';
 import { getWhatsAppLink, WHATSAPP_NUMBER, EMAIL, ADDRESS } from '../../constants';
 
 const Contact = () => {
+  const [formData, setFormData] = useState({
+    name: '',
+    whatsapp: '',
+    email: '',
+    message: ''
+  });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { id, value } = e.target;
+    setFormData(prev => ({ ...prev, [id]: value }));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    const formattedMessage = `*Nouveau message du formulaire*\n\n*Nom:* ${formData.name}\n*WhatsApp:* ${formData.whatsapp || 'Non spécifié'}\n*Email:* ${formData.email}\n*Message:* ${formData.message}`;
+    
+    window.open(getWhatsAppLink(formattedMessage), '_blank');
+  };
+
   return (
     <section id="contact" className="py-24 bg-slate-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -41,10 +61,10 @@ const Contact = () => {
                   <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center shrink-0">
                     <Mail size={24} />
                   </div>
-                  <div className="text-center sm:text-left">
+                  <a href={`mailto:${EMAIL}`} className="text-center sm:text-left hover:text-white transition-colors">
                     <div className="text-white/60 text-xs uppercase tracking-widest font-bold">Email</div>
                     <div className="text-lg font-bold break-all">{EMAIL}</div>
-                  </div>
+                  </a>
                 </div>
 
                 <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 bg-white/5 p-4 rounded-3xl">
@@ -62,7 +82,7 @@ const Contact = () => {
             <div id="contact-form-container" className="p-12 lg:p-20 bg-white/5 backdrop-blur-sm border-l border-white/10 flex flex-col justify-center">
               <div className="bg-white p-10 rounded-[2rem] shadow-xl text-slate-900">
                 <h2 id="contact-form-title" className="text-2xl font-bold mb-6">Envoyez-nous un message</h2>
-                <form className="space-y-4" onSubmit={(e) => e.preventDefault()} aria-labelledby="contact-form-title">
+                <form className="space-y-4" onSubmit={handleSubmit} aria-labelledby="contact-form-title">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1">
                       <label htmlFor="name" className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Nom</label>
@@ -70,6 +90,8 @@ const Contact = () => {
                         id="name"
                         type="text"
                         placeholder="Votre nom"
+                        value={formData.name}
+                        onChange={handleChange}
                         required
                         aria-required="true"
                         className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-100 focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20 outline-none transition-all"
@@ -81,6 +103,8 @@ const Contact = () => {
                         id="whatsapp"
                         type="tel"
                         placeholder="N° WhatsApp"
+                        value={formData.whatsapp}
+                        onChange={handleChange}
                         className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-100 focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20 outline-none transition-all"
                       />
                     </div>
@@ -91,6 +115,8 @@ const Contact = () => {
                       id="email"
                       type="email"
                       placeholder="Votre email"
+                      value={formData.email}
+                      onChange={handleChange}
                       required
                       aria-required="true"
                       className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-100 focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20 outline-none transition-all"
@@ -102,6 +128,8 @@ const Contact = () => {
                       id="message"
                       placeholder="Votre message"
                       rows={4}
+                      value={formData.message}
+                      onChange={handleChange}
                       required
                       aria-required="true"
                       className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-100 focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20 outline-none transition-all"
