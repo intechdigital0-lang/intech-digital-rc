@@ -31,13 +31,13 @@ const Testimonials = () => {
   };
 
   return (
-    <section className="py-24 bg-slate-50 relative overflow-hidden">
+    <section className="py-16 md:py-24 bg-slate-50 relative overflow-hidden">
       {/* Decorative quotes */}
       <Quote className="absolute -top-10 -left-10 w-64 h-64 text-brand-primary/5 -rotate-12" />
       <Quote className="absolute -bottom-10 -right-10 w-64 h-64 text-brand-secondary/5 rotate-180" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-        <div className="text-center mb-16">
+        <div className="text-center mb-10 md:mb-16">
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}

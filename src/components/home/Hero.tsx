@@ -58,7 +58,7 @@ const Hero = () => {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.3, ease: [0.21, 0.45, 0.32, 0.9] }}
-              className="text-3xl md:text-4xl lg:text-5xl font-display font-bold text-slate-900 leading-tight mb-8"
+              className="text-3xl md:text-5xl lg:text-6xl font-display font-bold text-slate-900 leading-tight mb-6 md:mb-8"
             >
               Faites décoller <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-secondary to-brand-primary">votre activité</span> maintenant
             </motion.h1>
@@ -67,7 +67,7 @@ const Hero = () => {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.4, ease: [0.21, 0.45, 0.32, 0.9] }}
-              className="text-xl text-slate-600 mb-10 max-w-lg leading-relaxed mx-auto lg:mx-0"
+              className="text-base md:text-xl text-slate-600 mb-8 md:mb-10 max-w-lg leading-relaxed mx-auto lg:mx-0 px-2"
             >
               Design, marketing et solutions digitales sur mesure pour propulser votre business vers de nouveaux sommets.
             </motion.p>

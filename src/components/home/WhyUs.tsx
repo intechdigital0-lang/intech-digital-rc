@@ -39,24 +39,24 @@ const WhyUs = () => {
   ];
 
   return (
-    <section className="py-24 bg-white">
+    <section className="py-12 md:py-24 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid lg:grid-cols-2 gap-20 items-center">
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             className="text-center"
           >
-            <h2 className="text-4xl md:text-5xl font-display font-bold text-slate-900 mb-8 leading-tight">
-              Pourquoi faire confiance à <br />
+            <h2 className="text-3xl md:text-5xl font-display font-bold text-slate-900 mb-6 md:mb-8 leading-tight">
+              Pourquoi faire confiance à <br className="hidden md:block" />
               <span className="text-brand-primary">Intech Digital DRC ?</span>
             </h2>
-            <p className="text-lg text-slate-600 mb-16 max-w-2xl mx-auto">
+            <p className="text-base md:text-lg text-slate-600 mb-10 md:mb-16 max-w-2xl mx-auto px-2">
               Au-delà d'une simple agence, nous sommes votre extension créative et digitale. Notre mission est de transformer votre potentiel en succès concret.
             </p>
             
-            <div className="grid sm:grid-cols-2 gap-12 text-center mb-16 lg:mb-0">
+            <div className="grid sm:grid-cols-2 gap-8 md:gap-12 text-center mb-10 lg:mb-0">
               {highlights.map((item, i) => (
                 <div key={i} className="flex flex-col items-center gap-4">
                   <div className={`w-14 h-14 ${item.color} rounded-2xl flex items-center justify-center shadow-lg transform rotate-3 mb-2`}>

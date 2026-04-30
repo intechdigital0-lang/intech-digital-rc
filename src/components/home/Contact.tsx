@@ -87,19 +87,19 @@ const Contact = () => {
   };
 
   return (
-    <section id="contact" className="py-24 bg-slate-50">
+    <section id="contact" className="py-16 md:py-24 bg-slate-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-brand-primary rounded-[3rem] overflow-hidden shadow-2xl relative">
+        <div className="bg-brand-primary rounded-[2rem] md:rounded-[3rem] overflow-hidden shadow-2xl relative">
           {/* Patterns */}
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
           <div className="absolute bottom-0 left-0 w-64 h-64 bg-brand-secondary/20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
 
           <div className="grid lg:grid-cols-2 relative z-10">
-            <div className="p-12 lg:p-20 text-white text-center flex flex-col items-center justify-center">
-              <h2 className="text-4xl md:text-5xl font-display font-bold mb-8">
+            <div className="p-8 md:p-12 lg:p-20 text-white text-center flex flex-col items-center justify-center">
+              <h2 className="text-3xl md:text-5xl font-display font-bold mb-6 md:mb-8">
                 Prêt à démarrer <br /> votre projet ?
               </h2>
-              <p className="text-white/80 text-lg mb-12 max-w-md leading-relaxed mx-auto">
+              <p className="text-white/80 text-base md:text-lg mb-8 md:mb-12 max-w-md leading-relaxed mx-auto">
                 Contactez Intech Digital DRC aujourd'hui pour discuter de vos idées. Nous sommes là pour vous aider à les concrétiser.
               </p>
 
@@ -141,8 +141,8 @@ const Contact = () => {
               </div>
             </div>
 
-            <div id="contact-form-container" className="p-12 lg:p-20 bg-white/5 backdrop-blur-sm border-l border-white/10 flex flex-col justify-center">
-              <div className="bg-white p-10 rounded-[2rem] shadow-xl text-slate-900">
+            <div id="contact-form-container" className="p-8 md:p-12 lg:p-20 bg-white/5 backdrop-blur-sm border-l border-white/10 flex flex-col justify-center">
+              <div className="bg-white p-6 md:p-10 rounded-[2rem] shadow-xl text-slate-900">
                 <h2 id="contact-form-title" className="text-2xl font-bold mb-6">Envoyez-nous un message</h2>
                 <form className="space-y-4" onSubmit={handleSubmit} noValidate aria-labelledby="contact-form-title">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
