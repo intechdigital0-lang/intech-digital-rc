@@ -9,8 +9,8 @@ const Footer = () => {
   return (
     <footer className="bg-slate-900 text-white pt-20 pb-10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
-          <div className="space-y-6 lg:col-span-1">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16 text-center">
+          <div className="space-y-6 lg:col-span-1 flex flex-col items-center">
             <a href="#" className="flex items-center gap-2">
               <div className="w-10 h-10 bg-brand-secondary rounded-xl flex items-center justify-center border border-brand-primary/20">
                 <span className="text-brand-primary font-bold text-xl font-display">I</span>
@@ -25,7 +25,7 @@ const Footer = () => {
             <p className="text-slate-400 leading-relaxed">
               Votre partenaire de confiance pour une transformation digitale réussie en RDC et partout dans le monde
             </p>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center justify-center gap-4">
               {[
                 { icon: <Facebook size={20} />, href: 'https://facebook.com', label: 'Facebook' },
                 { icon: <Instagram size={20} />, href: 'https://instagram.com', label: 'Instagram' },
@@ -61,7 +61,7 @@ const Footer = () => {
             <ul className="space-y-4">
               {SERVICES.slice(0, 4).map((service) => (
                 <li key={service.id}>
-                  <a href="#services" className="text-slate-400 hover:text-white transition-colors flex items-center gap-2 group">
+                  <a href="#services" className="text-slate-400 hover:text-white transition-colors flex items-center justify-center gap-2 group">
                     <span className="w-1.5 h-1.5 bg-brand-primary rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></span>
                     {service.title}
                   </a>
@@ -73,17 +73,17 @@ const Footer = () => {
           <div>
             <h4 className="text-lg font-bold mb-6">Contactez-nous</h4>
             <ul className="space-y-4">
-              <li className="flex gap-4">
+              <li className="flex flex-col items-center gap-2">
                 <MapPin className="text-brand-primary shrink-0" size={20} />
                 <span className="text-slate-400">{ADDRESS}</span>
               </li>
-              <li className="flex gap-4">
+              <li className="flex flex-col items-center gap-2">
                 <Mail className="text-brand-primary shrink-0" size={20} />
                 <a href={`mailto:${EMAIL}`} className="text-slate-400 hover:text-white transition-colors">
                   {EMAIL}
                 </a>
               </li>
-              <li className="flex gap-4">
+              <li className="flex flex-col items-center gap-2">
                 <MessageCircle className="text-brand-primary shrink-0" size={20} />
                 <span className="text-slate-400">{WHATSAPP_NUMBER}</span>
               </li>

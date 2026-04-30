@@ -6,12 +6,12 @@ import {
   User,
   signInWithEmailAndPassword
 } from 'firebase/auth';
-import { auth, googleProvider, githubProvider, isUserAdmin } from '../../lib/firebase';
+import { auth, isUserAdmin } from '../../lib/firebase';
 import { portfolioService, settingsService, testimonialService } from '../../lib/firestoreService';
 import { storageService } from '../../lib/storageService';
 import { PortfolioItem } from '../../types';
-import { motion } from 'motion/react';
-import { Plus, Trash2, LogOut, Key, Image as ImageIcon, Save, AlertCircle, MessageSquare, Star, Mail, Lock, Upload, Loader2, Edit2, X, ChevronLeft, ChevronRight, Github } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { Plus, Trash2, LogOut, Key, Image as ImageIcon, Save, AlertCircle, MessageSquare, Star, Mail, Lock, Upload, Loader2, Edit2, X, ChevronLeft, ChevronRight, ExternalLink } from 'lucide-react';
 
 const ITEMS_PER_PAGE = 5;
 
@@ -66,21 +66,12 @@ const AdminDashboard = () => {
   const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
-    // Check for cached admin session for "instant" feel
-    const cachedAdmin = sessionStorage.getItem('isAdmin');
-    if (cachedAdmin === 'true') {
-      setIsAdminLocally(true);
-      setLoading(false);
-    }
-
     const unsubscribeAuth = onAuthStateChanged(auth, (u) => {
       setUser(u);
       if (u && isUserAdmin(u.email)) {
         setIsAdminLocally(true);
-        sessionStorage.setItem('isAdmin', 'true');
-      } else if (!u) {
+      } else {
         setIsAdminLocally(false);
-        sessionStorage.removeItem('isAdmin');
       }
       setLoading(false);
     });
@@ -114,65 +105,24 @@ const AdminDashboard = () => {
     setMessage('');
     setIsLoggingIn(true);
     
-    // Check for hardcoded admin credentials as requested for local bypass if Firebase fails
-    if (email === 'intechdigital0@gmail.com' && password === '000000') {
-      try {
-        await signInWithEmailAndPassword(auth, email, password);
-        setIsAdminLocally(true);
-      } catch (error: any) {
-        console.error('Firebase Auth Error:', error);
-        // If it fails (e.g. user not created in Firebase Console yet), we allow access locally
-        // but warn that writes might fail due to security rules
-        setIsAdminLocally(true);
-        setMessage('Connecté en mode administrateur.');
-      } finally {
-        setIsLoggingIn(false);
-      }
-      return;
-    }
-
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      setIsAdminLocally(true);
+      setMessage('Connecté avec succès.');
     } catch (error: any) {
+      console.error('Firebase Auth Error:', error);
+      
       if (error.code === 'auth/network-request-failed') {
-        setMessage('Erreur réseau : Impossible de contacter Firebase. Vérifiez votre connexion internet ou essayez d\'ouvrir l\'application dans un nouvel onglet.');
+        const domain = window.location.hostname;
+        const currentUrl = window.location.href;
+        setMessage(`Erreur réseau : La requête a été bloquée par le navigateur (souvent dû à l'Iframe). \n\n1. Vérifiez que "${domain}" est bien dans la console Firebase.\n2. Si c'est déjà fait, cliquez sur le bouton "Ouvrir en plein écran" ci-dessous pour contourner le blocage.`);
+        
+        // Add a retry link to the message container if needed, but for now we'll handle it in the UI
+      } else if (error.code === 'auth/user-not-found') {
+        setMessage('Compte non trouvé. Vérifiez votre email.');
+      } else if (error.code === 'auth/wrong-password') {
+        setMessage('Mot de passe incorrect.');
       } else {
         setMessage(`Erreur: ${error.message}`);
-      }
-    } finally {
-      setIsLoggingIn(false);
-    }
-  };
-
-  const handleGoogleLogin = async () => {
-    setMessage('');
-    setIsLoggingIn(true);
-    try {
-      await signInWithPopup(auth, googleProvider);
-    } catch (error: any) {
-      console.error('Login error:', error);
-      if (error.code === 'auth/network-request-failed') {
-        setMessage('Erreur réseau : La connexion Google a échoué. Essayez d\'ouvrir l\'application dans un nouvel onglet.');
-      } else {
-        setMessage('La connexion Google a échoué.');
-      }
-    } finally {
-      setIsLoggingIn(false);
-    }
-  };
-
-  const handleGithubLogin = async () => {
-    setMessage('');
-    setIsLoggingIn(true);
-    try {
-      await signInWithPopup(auth, githubProvider);
-    } catch (error: any) {
-      console.error('Login error:', error);
-      if (error.code === 'auth/network-request-failed') {
-        setMessage('Erreur réseau : La connexion GitHub a échoué. Essayez d\'ouvrir l\'application dans un nouvel onglet.');
-      } else {
-        setMessage('La connexion GitHub a échoué. Assurez-vous d\'avoir configuré GitHub dans la console Firebase.');
       }
     } finally {
       setIsLoggingIn(false);
@@ -183,11 +133,17 @@ const AdminDashboard = () => {
     signOut(auth);
     setIsAdminLocally(false);
     setUser(null);
-    sessionStorage.removeItem('isAdmin');
   };
 
   const handleFileUpload = async (file: File, folder: string, callback: (url: string) => void) => {
     if (!file) return;
+    
+    // Check if user is actually authenticated
+    if (!auth.currentUser) {
+      setMessage("Erreur: Vous devez être connecté pour effectuer cette action.");
+      return;
+    }
+
     setIsUploading(true);
     let localUrl = '';
     
@@ -197,16 +153,17 @@ const AdminDashboard = () => {
       callback(localUrl);
       
       console.log(`Starting upload for ${file.name} to ${folder}...`);
+      setMessage('Traitement de l\'image en cours...');
+      
       const url = await storageService.uploadImage(file, folder);
       console.log(`Upload successful: ${url}`);
       
       callback(url);
-      setMessage('Image prête à être enregistrée');
-      setTimeout(() => setMessage(''), 3000);
+      setMessage('Image téléchargée avec succès. N\'oubliez pas d\'enregistrer les modifications.');
+      setTimeout(() => setMessage(''), 5000);
     } catch (error: any) {
       console.error('Upload error detail:', error);
-      // Revert optimistic update on failure if desired, or keep showing it and warn
-      setMessage(`Erreur: ${error.message || 'Le téléchargement a échoué'}`);
+      setMessage(`Erreur de téléchargement: ${error.message || 'Le service Firebase Storage a rejeté la requête. Vérifiez vos règles de sécurité.'}`);
     } finally {
       setIsUploading(false);
     }
@@ -403,50 +360,26 @@ const AdminDashboard = () => {
             </motion.button>
           </form>
 
-          <div className="relative mb-8">
-            <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-100"></div></div>
-            <div className="relative flex justify-center text-sm"><span className="px-2 bg-white text-slate-400 font-medium italic">ou continuer avec</span></div>
-          </div>
 
-          <div className="grid grid-cols-2 gap-4 mb-8">
-            <motion.button 
-              whileHover={{ scale: 1.01, backgroundColor: "#f8fafc" }}
-              whileTap={{ scale: 0.95 }}
-              transition={{ type: "spring", stiffness: 400, damping: 17 }}
-              onClick={handleGoogleLogin} 
-              disabled={isLoggingIn}
-              className="py-3 px-4 bg-white border border-slate-200 rounded-xl flex items-center justify-center gap-3 hover:bg-slate-50 transition-colors font-medium text-slate-700 relative overflow-hidden"
-            >
-              {isLoggingIn ? (
-                <Loader2 className="animate-spin text-brand-primary" size={20} />
-              ) : (
-                <>
-                  <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="" className="w-5 h-5" />
-                  Google
-                </>
+          {message && (
+            <div className="mt-6 text-center space-y-4">
+              <p className={`text-sm ${message.includes('succès') || message.includes('Connecté') ? 'text-emerald-500' : 'text-red-500'} whitespace-pre-line`}>
+                {message}
+              </p>
+              
+              {message.includes('Iframe') && (
+                <a 
+                  href={window.location.href} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-6 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-slate-800 transition-all shadow-lg"
+                >
+                  <ExternalLink size={14} />
+                  Ouvrir l'admin en plein écran
+                </a>
               )}
-            </motion.button>
-
-            <motion.button 
-              whileHover={{ scale: 1.01, backgroundColor: "#f8fafc" }}
-              whileTap={{ scale: 0.95 }}
-              transition={{ type: "spring", stiffness: 400, damping: 17 }}
-              onClick={handleGithubLogin} 
-              disabled={isLoggingIn}
-              className="py-3 px-4 bg-white border border-slate-200 rounded-xl flex items-center justify-center gap-3 hover:bg-slate-50 transition-colors font-medium text-slate-700 relative overflow-hidden"
-            >
-              {isLoggingIn ? (
-                <Loader2 className="animate-spin text-slate-900" size={20} />
-              ) : (
-                <>
-                  <Github size={20} className="text-slate-900" />
-                  GitHub
-                </>
-              )}
-            </motion.button>
-          </div>
-
-          {message && <p className={`mt-6 text-sm ${message.includes('Connecté') ? 'text-emerald-500' : 'text-red-500'}`}>{message}</p>}
+            </div>
+          )}
         </motion.div>
       </div>
     );
@@ -468,9 +401,13 @@ const AdminDashboard = () => {
 
         {message && (
           <motion.div 
-            initial={{ opacity: 0 }} 
-            animate={{ opacity: 1 }} 
-            className="mb-8 p-4 bg-emerald-50 text-emerald-600 rounded-2xl text-center font-medium"
+            initial={{ opacity: 0, y: -10 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            className={`mb-8 p-4 rounded-2xl text-center font-medium shadow-sm border ${
+              message.toLowerCase().includes('erreur') || message.toLowerCase().includes('incorrect') || message.toLowerCase().includes('non trouvé')
+                ? 'bg-red-50 text-red-600 border-red-100' 
+                : 'bg-emerald-50 text-emerald-600 border-emerald-100'
+            }`}
           >
             {message}
           </motion.div>
@@ -488,33 +425,35 @@ const AdminDashboard = () => {
                 <div className="space-y-3">
                   <label className="text-sm font-bold text-slate-700">Image de couverture (Hero)</label>
                   <div className="relative group">
-                    <input 
-                      type="file" 
-                      accept="image/*"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) handleFileUpload(file, 'settings', setHeroUrl);
-                      }}
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                      id="hero-upload"
-                    />
-                    <div className={`aspect-video rounded-2xl border-2 border-dashed flex flex-col items-center justify-center overflow-hidden transition-all ${
-                      heroUrl ? 'border-brand-primary/20 bg-brand-primary/5' : 'border-slate-200 bg-slate-50 hover:border-brand-primary/50'
-                    }`}>
-                      {heroUrl ? (
-                        <div className="relative w-full h-full">
-                          <img src={heroUrl} alt="Hero Preview" className="w-full h-full object-cover" />
-                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                            <Upload size={24} className="text-white" />
+                    <label htmlFor="hero-upload" className="block cursor-pointer">
+                      <input 
+                        type="file" 
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleFileUpload(file, 'settings', setHeroUrl);
+                        }}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                        id="hero-upload"
+                      />
+                      <div className={`aspect-video rounded-2xl border-2 border-dashed flex flex-col items-center justify-center overflow-hidden transition-all ${
+                        heroUrl ? 'border-brand-primary/20 bg-brand-primary/5' : 'border-slate-200 bg-slate-50 hover:border-brand-primary/50'
+                      }`}>
+                        {heroUrl ? (
+                          <div className="relative w-full h-full">
+                            <img src={heroUrl} alt="Hero Preview" className="w-full h-full object-cover" />
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                              <Upload size={24} className="text-white" />
+                            </div>
                           </div>
-                        </div>
-                      ) : (
-                        <div className="flex flex-col items-center text-slate-400">
-                          {isUploading ? <Loader2 className="animate-spin" size={24} /> : <Upload size={24} />}
-                          <span className="text-xs font-bold mt-2">Importer</span>
-                        </div>
-                      )}
-                    </div>
+                        ) : (
+                          <div className="flex flex-col items-center text-slate-400">
+                            {isUploading ? <Loader2 className="animate-spin" size={24} /> : <Upload size={24} />}
+                            <span className="text-xs font-bold mt-2">Importer</span>
+                          </div>
+                        )}
+                      </div>
+                    </label>
                   </div>
                   <button 
                     onClick={handleUpdateHero} 
@@ -529,33 +468,35 @@ const AdminDashboard = () => {
                 <div className="space-y-3 pt-6 border-t border-slate-100">
                   <label className="text-sm font-bold text-slate-700">Image "Pourquoi nous"</label>
                   <div className="relative group">
-                    <input 
-                      type="file" 
-                      accept="image/*"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) handleFileUpload(file, 'settings', setWhyUsUrl);
-                      }}
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                      id="whyus-upload"
-                    />
-                    <div className={`aspect-video rounded-2xl border-2 border-dashed flex flex-col items-center justify-center overflow-hidden transition-all ${
-                      whyUsUrl ? 'border-brand-primary/20 bg-brand-primary/5' : 'border-slate-200 bg-slate-50 hover:border-brand-primary/50'
-                    }`}>
-                      {whyUsUrl ? (
-                        <div className="relative w-full h-full">
-                          <img src={whyUsUrl} alt="Why Us Preview" className="w-full h-full object-cover" />
-                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                            <Upload size={24} className="text-white" />
+                    <label htmlFor="whyus-upload" className="block cursor-pointer">
+                      <input 
+                        type="file" 
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleFileUpload(file, 'settings', setWhyUsUrl);
+                        }}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                        id="whyus-upload"
+                      />
+                      <div className={`aspect-video rounded-2xl border-2 border-dashed flex flex-col items-center justify-center overflow-hidden transition-all ${
+                        whyUsUrl ? 'border-brand-primary/20 bg-brand-primary/5' : 'border-slate-200 bg-slate-50 hover:border-brand-primary/50'
+                      }`}>
+                        {whyUsUrl ? (
+                          <div className="relative w-full h-full">
+                            <img src={whyUsUrl} alt="Why Us Preview" className="w-full h-full object-cover" />
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                              <Upload size={24} className="text-white" />
+                            </div>
                           </div>
-                        </div>
-                      ) : (
-                        <div className="flex flex-col items-center text-slate-400">
-                          {isUploading ? <Loader2 className="animate-spin" size={24} /> : <Upload size={24} />}
-                          <span className="text-xs font-bold mt-2">Importer</span>
-                        </div>
-                      )}
-                    </div>
+                        ) : (
+                          <div className="flex flex-col items-center text-slate-400">
+                            {isUploading ? <Loader2 className="animate-spin" size={24} /> : <Upload size={24} />}
+                            <span className="text-xs font-bold mt-2">Importer</span>
+                          </div>
+                        )}
+                      </div>
+                    </label>
                   </div>
                   <button 
                     onClick={handleUpdateWhyUs} 
@@ -712,8 +653,13 @@ const AdminDashboard = () => {
                         onChange={async (e) => {
                           const files = e.target.files;
                           if (files && files.length > 0) {
+                            if (!auth.currentUser) {
+                              setMessage("Erreur: Authentification Firebase requise pour uploader des photos.");
+                              return;
+                            }
+
                             setIsUploading(true);
-                            setMessage(`Téléchargement de ${files.length} photos...`);
+                            setMessage(`Préparation de ${files.length} photos...`);
                             
                             const fileArray = Array.from(files) as File[];
                             let successCount = 0;
@@ -728,6 +674,7 @@ const AdminDashboard = () => {
                                   setNewItem(prev => ({...prev, images: [...prev.images, tempUrl]}));
                                 }
 
+                                setMessage(`Téléchargement de ${file.name}...`);
                                 const url = await storageService.uploadImage(file, 'portfolio');
                                 
                                 // Replace temp URL with final URL
@@ -744,8 +691,9 @@ const AdminDashboard = () => {
                                   });
                                 }
                                 successCount++;
-                              } catch (uploadError) {
+                              } catch (uploadError: any) {
                                 console.error('Error uploading individual gallery file:', uploadError);
+                                setMessage(`Erreur sur une photo: ${uploadError.message}`);
                               }
                             }
                             
@@ -930,44 +878,56 @@ const AdminDashboard = () => {
       </div>
 
       {/* Deletion Confirmation Modal */}
-      <motion.div 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: deleteInfo ? 1 : 0 }}
-        className={`fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-all ${deleteInfo ? 'pointer-events-auto' : 'pointer-events-none'}`}
-      >
+      <AnimatePresence>
         {deleteInfo && (
           <motion.div 
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="bg-white w-full max-w-md rounded-[2.5rem] p-10 text-center shadow-2xl"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm"
+            onClick={() => setDeleteInfo(null)}
           >
-            <div className="w-20 h-20 bg-red-50 text-red-500 rounded-3xl flex items-center justify-center mx-auto mb-6">
-              <Trash2 size={32} />
-            </div>
-            <h3 className="text-2xl font-bold text-slate-900 mb-2">Confirmation</h3>
-            <p className="text-slate-600 mb-8">
-              Êtes-vous sûr de vouloir supprimer <span className="font-bold text-slate-900">"{deleteInfo.title}"</span> ? Cette action est irréversible.
-            </p>
-            <div className="flex gap-4">
-              <button 
-                onClick={() => setDeleteInfo(null)}
-                disabled={isDeleting}
-                className="flex-1 py-4 px-6 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-2xl transition-all disabled:opacity-50"
-              >
-                Annuler
-              </button>
-              <button 
-                onClick={confirmDelete}
-                disabled={isDeleting}
-                className="flex-1 py-4 px-6 bg-red-500 hover:bg-red-600 text-white font-bold rounded-2xl shadow-lg shadow-red-200 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-              >
-                {isDeleting ? <Loader2 className="animate-spin" size={20} /> : <Trash2 size={20} />}
-                Supprimer
-              </button>
-            </div>
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white w-full max-w-md rounded-[2.5rem] p-10 text-center shadow-2xl relative overflow-hidden"
+            >
+              <div className="absolute top-0 left-0 w-full h-2 bg-red-500" />
+              
+              <div className="w-20 h-20 bg-red-50 text-red-500 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-inner">
+                <Trash2 size={32} className={isDeleting ? 'animate-pulse' : ''} />
+              </div>
+              
+              <h3 className="text-2xl font-bold text-slate-900 mb-2">Confirmation</h3>
+              <p className="text-slate-600 mb-8 leading-relaxed">
+                Êtes-vous sûr de vouloir supprimer <br />
+                <span className="font-bold text-slate-900 leading-loose">"{deleteInfo.title}"</span> ? <br />
+                <span className="text-sm font-medium text-red-500 bg-red-50 px-3 py-1 rounded-full mt-4 inline-block">Action irréversible</span>
+              </p>
+              
+              <div className="flex gap-4">
+                <button 
+                  onClick={() => setDeleteInfo(null)}
+                  disabled={isDeleting}
+                  className="flex-1 py-4 px-6 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-2xl transition-all disabled:opacity-50 active:scale-95"
+                >
+                  Annuler
+                </button>
+                <button 
+                  onClick={confirmDelete}
+                  disabled={isDeleting}
+                  className="flex-1 py-4 px-6 bg-red-500 hover:bg-red-600 text-white font-bold rounded-2xl shadow-lg shadow-red-200 transition-all flex items-center justify-center gap-2 disabled:opacity-50 active:scale-95"
+                >
+                  {isDeleting ? <Loader2 className="animate-spin" size={20} /> : <Trash2 size={20} />}
+                  {isDeleting ? 'Suppression...' : 'Supprimer'}
+                </button>
+              </div>
+            </motion.div>
           </motion.div>
         )}
-      </motion.div>
+      </AnimatePresence>
     </div>
   );
 };

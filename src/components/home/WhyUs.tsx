@@ -4,7 +4,7 @@ import { Target, Zap, ShieldCheck, HeartPulse } from 'lucide-react';
 import { settingsService } from '../../lib/firestoreService';
 
 const WhyUs = () => {
-  const [whyUsImg, setWhyUsImg] = useState('https://images.unsplash.com/photo-1521737604893-d14cc237f11d?q=80&w=1000&auto=format&fit=crop');
+  const [whyUsImg, setWhyUsImg] = useState('https://images.unsplash.com/photo-1573166364524-d9dbfd8bbf83?q=80&w=1000&auto=format&fit=crop');
 
   useEffect(() => {
     settingsService.getSettings().then(s => {
@@ -46,24 +46,24 @@ const WhyUs = () => {
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-center lg:text-left"
+            className="text-center"
           >
             <h2 className="text-4xl md:text-5xl font-display font-bold text-slate-900 mb-8 leading-tight">
               Pourquoi faire confiance à <br />
               <span className="text-brand-primary">Intech Digital DRC ?</span>
             </h2>
-            <p className="text-lg text-slate-600 mb-12 max-w-2xl mx-auto lg:mx-0">
+            <p className="text-lg text-slate-600 mb-16 max-w-2xl mx-auto">
               Au-delà d'une simple agence, nous sommes votre extension créative et digitale. Notre mission est de transformer votre potentiel en succès concret.
             </p>
             
-            <div className="grid sm:grid-cols-2 gap-8 text-center sm:text-left">
+            <div className="grid sm:grid-cols-2 gap-12 text-center mb-16 lg:mb-0">
               {highlights.map((item, i) => (
-                <div key={i} className="flex flex-col items-center sm:items-start gap-4">
-                  <div className={`w-12 h-12 ${item.color} rounded-2xl flex items-center justify-center shadow-lg transform rotate-3 mb-2`}>
+                <div key={i} className="flex flex-col items-center gap-4">
+                  <div className={`w-14 h-14 ${item.color} rounded-2xl flex items-center justify-center shadow-lg transform rotate-3 mb-2`}>
                     {item.icon}
                   </div>
-                  <h3 className="font-bold text-slate-900 text-lg">{item.title}</h3>
-                  <p className="text-sm text-slate-500 leading-relaxed max-w-[250px]">{item.desc}</p>
+                  <h3 className="font-bold text-slate-900 text-xl">{item.title}</h3>
+                  <p className="text-base text-slate-500 leading-relaxed max-w-[300px] mx-auto">{item.desc}</p>
                 </div>
               ))}
             </div>

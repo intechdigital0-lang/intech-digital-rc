@@ -10,14 +10,39 @@ const Contact = () => {
     email: '',
     message: ''
   });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+    if (!formData.name.trim()) newErrors.name = 'Le nom est requis';
+    if (!formData.email.trim()) {
+      newErrors.email = 'L\'email est requis';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = 'Format d\'email invalide';
+    }
+    if (!formData.message.trim()) newErrors.message = 'Le message est requis';
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value } = e.target;
     setFormData(prev => ({ ...prev, [id]: value }));
+    // Clear error when user starts typing
+    if (errors[id]) {
+      setErrors(prev => {
+        const next = { ...prev };
+        delete next[id];
+        return next;
+      });
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validateForm()) return;
     
     const formattedMessage = `*Nouveau message du formulaire*\n\n*Nom:* ${formData.name}\n*WhatsApp:* ${formData.whatsapp || 'Non spécifié'}\n*Email:* ${formData.email}\n*Message:* ${formData.message}`;
     
@@ -82,19 +107,24 @@ const Contact = () => {
             <div id="contact-form-container" className="p-12 lg:p-20 bg-white/5 backdrop-blur-sm border-l border-white/10 flex flex-col justify-center">
               <div className="bg-white p-10 rounded-[2rem] shadow-xl text-slate-900">
                 <h2 id="contact-form-title" className="text-2xl font-bold mb-6">Envoyez-nous un message</h2>
-                <form className="space-y-4" onSubmit={handleSubmit} aria-labelledby="contact-form-title">
+                <form className="space-y-4" onSubmit={handleSubmit} noValidate aria-labelledby="contact-form-title">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1">
-                      <label htmlFor="name" className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Nom</label>
+                      <div className="flex justify-between items-center">
+                        <label htmlFor="name" className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Nom</label>
+                        {errors.name && <span className="text-[10px] font-bold text-rose-500 uppercase leading-none">{errors.name}</span>}
+                      </div>
                       <input
                         id="name"
                         type="text"
                         placeholder="Votre nom"
                         value={formData.name}
                         onChange={handleChange}
-                        required
                         aria-required="true"
-                        className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-100 focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20 outline-none transition-all"
+                        aria-invalid={!!errors.name}
+                        className={`w-full px-4 py-3 rounded-xl bg-slate-50 border outline-none transition-all ${
+                          errors.name ? 'border-rose-200 focus:border-rose-500 focus:ring-rose-200' : 'border-slate-100 focus:border-brand-primary focus:ring-brand-primary/20'
+                        }`}
                       />
                     </div>
                     <div className="space-y-1">
@@ -110,29 +140,39 @@ const Contact = () => {
                     </div>
                   </div>
                   <div className="space-y-1">
-                    <label htmlFor="email" className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Email</label>
+                    <div className="flex justify-between items-center">
+                      <label htmlFor="email" className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Email</label>
+                      {errors.email && <span className="text-[10px] font-bold text-rose-500 uppercase leading-none">{errors.email}</span>}
+                    </div>
                     <input
                       id="email"
                       type="email"
                       placeholder="Votre email"
                       value={formData.email}
                       onChange={handleChange}
-                      required
                       aria-required="true"
-                      className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-100 focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20 outline-none transition-all"
+                      aria-invalid={!!errors.email}
+                      className={`w-full px-4 py-3 rounded-xl bg-slate-50 border outline-none transition-all ${
+                        errors.email ? 'border-rose-200 focus:border-rose-500 focus:ring-rose-200' : 'border-slate-100 focus:border-brand-primary focus:ring-brand-primary/20'
+                      }`}
                     />
                   </div>
                   <div className="space-y-1">
-                    <label htmlFor="message" className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Message</label>
+                    <div className="flex justify-between items-center">
+                      <label htmlFor="message" className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Message</label>
+                      {errors.message && <span className="text-[10px] font-bold text-rose-500 uppercase leading-none">{errors.message}</span>}
+                    </div>
                     <textarea
                       id="message"
                       placeholder="Votre message"
                       rows={4}
                       value={formData.message}
                       onChange={handleChange}
-                      required
                       aria-required="true"
-                      className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-100 focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20 outline-none transition-all"
+                      aria-invalid={!!errors.message}
+                      className={`w-full px-4 py-3 rounded-xl bg-slate-50 border outline-none transition-all ${
+                        errors.message ? 'border-rose-200 focus:border-rose-500 focus:ring-rose-200' : 'border-slate-100 focus:border-brand-primary focus:ring-brand-primary/20'
+                      }`}
                     ></textarea>
                   </div>
                   <button type="submit" className="btn-primary w-full py-4 text-lg" aria-label="Envoyer le message">

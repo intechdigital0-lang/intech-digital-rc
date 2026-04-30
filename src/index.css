@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
 @theme {
@@ -6,6 +7,18 @@
   --color-brand-primary: #FDBA12; /* Gold/Yellow from logo */
   --color-brand-secondary: #1D2C5E; /* Deep Blue from logo */
   --color-brand-dark: #000000; /* Pure Black as per logo background */
+}
+
+@layer utilities {
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-slate-200 rounded-full hover:bg-slate-300 transition-colors;
+  }
 }
 
 @layer base {
@@ -32,14 +45,44 @@
   .glass-card {
     @apply bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl;
   }
-}
 
-@font-face {
-  font-family: 'Inter';
-  src: url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-}
+  .waves {
+    position: absolute;
+    width: 100%;
+    height: 10vh;
+    min-height: 80px;
+    max-height: 120px;
+    bottom: 0;
+    left: 0;
+    z-index: -5;
+  }
 
-@font-face {
-  font-family: 'Outfit';
-  src: url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap');
+  .parallax > use {
+    animation: move-forever 25s cubic-bezier(.55,.5,.45,.5) infinite;
+  }
+  .parallax > use:nth-child(1) {
+    animation-delay: -2s;
+    animation-duration: 12s;
+  }
+  .parallax > use:nth-child(2) {
+    animation-delay: -3s;
+    animation-duration: 15s;
+  }
+  .parallax > use:nth-child(3) {
+    animation-delay: -4s;
+    animation-duration: 18s;
+  }
+  .parallax > use:nth-child(4) {
+    animation-delay: -5s;
+    animation-duration: 25s;
+  }
+
+  @keyframes move-forever {
+    0% {
+      transform: translate3d(-90px,0,0);
+    }
+    100% { 
+      transform: translate3d(85px,0,0);
+    }
+  }
 }

@@ -13,6 +13,13 @@ export interface PortfolioItem {
   description?: string;
   imageUrl: string;
   images?: string[];
+  technologies?: string[];
+  testimonial?: {
+    name: string;
+    comment: string;
+    company?: string;
+    role?: string;
+  };
 }
 
 export interface Testimonial {

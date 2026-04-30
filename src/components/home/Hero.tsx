@@ -19,6 +19,20 @@ const Hero = () => {
       <div className="absolute top-0 right-0 -translate-y-1/4 translate-x-1/4 w-[600px] h-[600px] bg-brand-primary/10 rounded-full blur-3xl -z-10" />
       <div className="absolute bottom-0 left-0 translate-y-1/4 -translate-x-1/4 w-[400px] h-[400px] bg-brand-secondary/10 rounded-full blur-3xl -z-10" />
 
+      {/* Wave Background */}
+      <svg className="waves" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink"
+        viewBox="0 24 150 28" preserveAspectRatio="none" shapeRendering="auto">
+        <defs>
+          <path id="gentle-wave" d="M-160 44c30 0 58-18 88-18s 58 18 88 18 58-18 88-18 58 18 88 18 v44h-352z" />
+        </defs>
+        <g className="parallax">
+          <use xlinkHref="#gentle-wave" x="48" y="0" fill="rgba(253, 186, 18, 0.1)" />
+          <use xlinkHref="#gentle-wave" x="48" y="3" fill="rgba(29, 44, 94, 0.05)" />
+          <use xlinkHref="#gentle-wave" x="48" y="5" fill="rgba(253, 186, 18, 0.03)" />
+          <use xlinkHref="#gentle-wave" x="48" y="7" fill="rgba(255, 255, 255, 0.8)" />
+        </g>
+      </svg>
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           <motion.div
@@ -40,13 +54,23 @@ const Hero = () => {
               Mieux fait, Vite fait
             </motion.div>
             
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-display font-bold text-slate-900 leading-tight mb-8">
+            <motion.h1 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              className="text-3xl md:text-4xl lg:text-5xl font-display font-bold text-slate-900 leading-tight mb-8"
+            >
               Faites décoller <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-secondary to-brand-primary">votre activité</span> maintenant
-            </h1>
+            </motion.h1>
             
-            <p className="text-xl text-slate-600 mb-10 max-w-lg leading-relaxed mx-auto lg:mx-0">
+            <motion.p 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              className="text-xl text-slate-600 mb-10 max-w-lg leading-relaxed mx-auto lg:mx-0"
+            >
               Design, marketing et solutions digitales sur mesure pour propulser votre business vers de nouveaux sommets.
-            </p>
+            </motion.p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
               <a

@@ -44,9 +44,25 @@ const Navbar = () => {
                   ease: "easeInOut",
                   times: [0, 0.4, 0.7, 1]
                 }}
-                className="w-10 h-10 bg-brand-secondary rounded-xl flex items-center justify-center border border-brand-primary/20"
+                className="h-10 flex items-center justify-center overflow-hidden"
               >
-                <span className="text-brand-primary font-bold text-xl font-display">I</span>
+                <div className="h-10 w-auto flex items-center">
+                  <img 
+                    src="https://intechdigital.xyz/wp-content/uploads/2024/02/cropped-favicon-intech-192x192.png" 
+                    alt="Intech Logo" 
+                    className="h-full w-auto object-contain"
+                    referrerPolicy="no-referrer"
+                  />
+                  <img 
+                    src="https://intechdigital.xyz/wp-content/uploads/2024/02/logo-intech.png" 
+                    alt="Intech Digital Logo" 
+                    className="h-full w-auto object-contain ml-2 hidden sm:block"
+                    referrerPolicy="no-referrer"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                </div>
               </motion.div>
               <span className="text-xl font-bold font-display tracking-tight text-slate-900">
                 Intech<span className="text-brand-primary"> Digital DRC</span>
@@ -76,46 +92,72 @@ const Navbar = () => {
             </a>
           </div>
 
-          <div className="md:hidden">
+          <div className="md:hidden overflow-hidden">
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="p-2 text-slate-600 hover:text-brand-primary transition-colors"
+              className="p-2 text-slate-600 hover:text-brand-primary transition-colors relative w-10 h-10"
+              aria-label={isOpen ? "Fermer le menu" : "Ouvrir le menu"}
             >
-              {isOpen ? <X size={24} /> : <Menu size={24} />}
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={isOpen ? 'close' : 'menu'}
+                  initial={{ x: -20, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  exit={{ x: 20, opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="absolute inset-0 flex items-center justify-center"
+                >
+                  {isOpen ? <X size={24} /> : <Menu size={24} />}
+                </motion.div>
+              </AnimatePresence>
             </button>
           </div>
         </div>
       </nav>
 
+      {/* Mobile Menu Backdrop */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsOpen(false)}
+            className="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-40 md:hidden"
+          />
+        )}
+      </AnimatePresence>
+
       {/* Mobile Menu */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ 
-              opacity: 1, 
-              height: 'auto',
-              transition: {
-                height: { duration: 0.4, ease: [0.04, 0.62, 0.23, 0.98] },
-                opacity: { duration: 0.25 }
-              }
-            }}
-            exit={{ 
-              opacity: 0, 
-              height: 0,
-              transition: {
-                height: { duration: 0.3, ease: [0.04, 0.62, 0.23, 0.98] },
-                opacity: { duration: 0.2 }
-              }
-            }}
-            className="md:hidden bg-white border-t border-slate-100 overflow-hidden shadow-xl"
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+            className="fixed inset-y-0 right-0 w-[85%] max-w-sm bg-white z-50 md:hidden shadow-2xl flex flex-col"
           >
+            <div className="p-6 flex justify-between items-center border-b border-slate-50">
+               <span className="text-xl font-bold font-display text-slate-900">
+                Menu
+              </span>
+              <button 
+                onClick={() => setIsOpen(false)}
+                className="p-2 text-slate-400 hover:text-brand-primary transition-colors"
+                aria-label="Fermer le menu"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
             <motion.div 
-              className="px-4 pt-4 pb-8 space-y-2"
+              className="flex-1 overflow-y-auto px-6 py-8 space-y-4"
               initial="closed"
               animate="open"
+              exit="closed"
               variants={{
-                open: { transition: { staggerChildren: 0.05, delayChildren: 0.1 } },
+                open: { transition: { staggerChildren: 0.08, delayChildren: 0.2 } },
                 closed: { transition: { staggerChildren: 0.05, staggerDirection: -1 } }
               }}
             >
@@ -125,35 +167,48 @@ const Navbar = () => {
                   href={link.href}
                   onClick={() => setIsOpen(false)}
                   variants={{
-                    open: { opacity: 1, x: 0 },
-                    closed: { opacity: 0, x: -20 }
+                    open: { opacity: 1, x: 0, filter: "blur(0px)" },
+                    closed: { opacity: 0, x: 20, filter: "blur(4px)" }
                   }}
-                  className="flex items-center gap-3 px-4 py-3 text-lg font-medium text-slate-700 hover:text-brand-primary hover:bg-brand-secondary/30 rounded-2xl transition-colors"
+                  className="flex items-center gap-5 px-5 py-5 text-xl font-bold text-slate-800 hover:text-brand-primary hover:bg-slate-50 rounded-[1.5rem] transition-all active:scale-95 group"
                 >
-                  <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-brand-primary">
+                  <div className="w-12 h-12 rounded-2xl bg-brand-secondary/10 flex items-center justify-center text-brand-primary shadow-sm group-hover:bg-brand-primary group-hover:text-white transition-colors">
                     {link.icon}
                   </div>
                   {link.name}
                 </motion.a>
               ))}
+            </motion.div>
+            
+            <div className="p-8 border-t border-slate-50 bg-slate-50/50">
               <motion.div 
-                className="pt-6 px-4"
-                variants={{
-                  open: { opacity: 1, y: 0 },
-                  closed: { opacity: 0, y: 10 }
-                }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
               >
-                <a
+                <motion.a
                   href={getWhatsAppLink('Bonjour Intech Digital DRC, je souhaiterais obtenir un devis.')}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="btn-primary w-full py-4 rounded-2xl text-lg flex items-center justify-center gap-3 shadow-lg shadow-brand-primary/20"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  animate={{ 
+                    boxShadow: ["0px 10px 30px rgba(253, 186, 18, 0.2)", "0px 10px 40px rgba(253, 186, 18, 0.4)", "0px 10px 30px rgba(253, 186, 18, 0.2)"] 
+                  }}
+                  transition={{ 
+                    boxShadow: { repeat: Infinity, duration: 2, ease: "easeInOut" }
+                  }}
+                  className="w-full h-16 rounded-2xl bg-brand-primary text-white font-bold text-xl flex items-center justify-center gap-4 shadow-xl shadow-brand-primary/30"
                 >
-                  <MessageSquare size={20} />
+                  <MessageSquare size={24} className="animate-bounce" />
                   Devis Gratuit
-                </a>
+                </motion.a>
+                <p className="text-center text-slate-400 text-sm mt-4 font-medium flex items-center justify-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                  Disponible maintenat
+                </p>
               </motion.div>
-            </motion.div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

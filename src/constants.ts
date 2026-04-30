@@ -58,25 +58,65 @@ export const PORTFOLIO: PortfolioItem[] = [
     id: '1',
     title: 'Branding Local pour Kinshasa',
     category: 'Design Graphique',
-    imageUrl: 'https://images.unsplash.com/photo-1516248676881-5b71944615ea?q=80&w=800&auto=format&fit=crop'
+    description: 'Une refonte complète de l\'identité visuelle pour une entreprise de logistique basée à Kinshasa. L\'objectif était de moderniser l\'image tout en conservant les racines congolaises.',
+    imageUrl: 'https://images.unsplash.com/photo-1516248676881-5b71944615ea?q=80&w=800&auto=format&fit=crop',
+    images: [
+      'https://images.unsplash.com/photo-1561070791-2526d30994b5?q=80&w=800&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1626785774573-4b799315345d?q=80&w=800&auto=format&fit=crop'
+    ],
+    technologies: ['Adobe Illustrator', 'Photoshop', 'Indesign'],
+    testimonial: {
+      name: 'Patrice Ngoyi',
+      role: 'Directeur Général',
+      company: 'LogisKin',
+      comment: 'Intech Digital a su capturer l\'essence de notre marque. Le nouveau design nous a permis de gagner en crédibilité auprès de nos partenaires internationaux.'
+    }
   },
   {
     id: '2',
     title: 'E-commerce Mode Africaine',
     category: 'Développement Web',
-    imageUrl: 'https://images.unsplash.com/photo-1523240693567-510e1274c938?q=80&w=800&auto=format&fit=crop'
+    description: 'Conception et développement d\'une plateforme e-commerce complète pour une marque de haute couture africaine. Intégration de paiements locaux et internationaux.',
+    imageUrl: 'https://images.unsplash.com/photo-1523240693567-510e1274c938?q=80&w=800&auto=format&fit=crop',
+    images: [
+      'https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=800&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1472851294608-062f824d29cc?q=80&w=800&auto=format&fit=crop'
+    ],
+    technologies: ['React', 'Next.js', 'Tailwind CSS', 'Stripe', 'Node.js'],
+    testimonial: {
+      name: 'Sarah Kalanga',
+      role: 'Fondatrice',
+      company: 'Glow Kinshasa',
+      comment: 'La plateforme est intuitive et magnifique. Mes ventes ont augmenté de 40% dès le premier mois de lancement.'
+    }
   },
   {
     id: '3',
     title: 'Campagne Digitale Startup RDC',
     category: 'Marketing Digital',
-    imageUrl: 'https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=800&auto=format&fit=crop'
+    description: 'Stratégie de lancement digital pour une nouvelle fintech en RDC. Campagnes publicitaires multi-plateformes et gestion de l\'engagement communautaire.',
+    imageUrl: 'https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=800&auto=format&fit=crop',
+    technologies: ['Facebook Ads', 'Google Ads', 'Instagram Marketing', 'Copywriting'],
+    testimonial: {
+      name: 'Marc Bolamba',
+      role: 'CMO',
+      company: 'PayKin',
+      comment: 'Une expertise inégalée en marketing digital. Ils connaissent parfaitement le marché local et savent comment toucher l\'audience cible.'
+    }
   },
   {
     id: '4',
     title: 'Identité Visuelle Event',
     category: 'Design Graphique',
-    imageUrl: 'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?q=80&w=800&auto=format&fit=crop'
+    description: 'Création de l\'univers visuel pour un forum économique majeur à Kinshasa. Bannières, badges, présentations et signalétique complète.',
+    imageUrl: 'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?q=80&w=800&auto=format&fit=crop',
+    technologies: ['Adobe CC', 'Print Design', 'Branding'],
+    testimonial: {
+      name: 'Julie Masengo',
+      role: 'Organisatrice',
+      company: 'Fek-RDC',
+      comment: 'Le professionnalisme et la rapidité d\'exécution étaient au rendez-vous. Un design qui a fait l\'unanimité.'
+    }
   }
 ];
 
