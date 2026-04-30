@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { ArrowRight, MessageCircle, CheckCircle2 } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { getWhatsAppLink } from '../../constants';
 import { settingsService } from '../../lib/firestoreService';
 
 const Hero = () => {
-  const [heroImg, setHeroImg] = useState('https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=1200&auto=format&fit=crop');
+  const [heroImg, setHeroImg] = useState('https://lh3.googleusercontent.com/d/1wUZql49z-_NYTo8PjTFzzKOqAjQvJxMY');
 
   useEffect(() => {
     settingsService.getSettings().then(s => {
@@ -45,7 +45,7 @@ const Hero = () => {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.2 }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-secondary text-brand-primary border border-brand-primary/20 text-sm font-semibold mb-6 mx-auto lg:mx-0"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-secondary text-white border border-brand-primary/20 text-sm font-semibold mb-6 mx-auto lg:mx-0"
             >
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-primary opacity-75"></span>
@@ -123,44 +123,10 @@ const Hero = () => {
               <img
                 src={heroImg}
                 alt="Digital Marketing Team"
-                className="w-full aspect-[4/5] object-cover"
+                className="w-full h-auto"
                 referrerPolicy="no-referrer"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent" />
             </div>
-
-            {/* Floating Elements */}
-            <motion.div
-              animate={{ y: [0, -20, 0] }}
-              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute -top-6 -right-6 p-6 glass-card shadow-xl hidden sm:block"
-            >
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-brand-primary">
-                  <CheckCircle2 size={32} />
-                </div>
-                <div>
-                  <div className="text-slate-900 font-bold text-xl">99%</div>
-                  <div className="text-slate-500 text-xs uppercase tracking-wider font-bold">Taux de succès</div>
-                </div>
-              </div>
-            </motion.div>
-
-            <motion.div
-              animate={{ y: [0, 20, 0] }}
-              transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute -bottom-6 -left-6 p-6 glass-card shadow-xl hidden sm:block"
-            >
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-brand-secondary">
-                  <MessageCircle size={32} />
-                </div>
-                <div>
-                  <div className="text-slate-900 font-bold text-xl">24/7</div>
-                  <div className="text-slate-500 text-xs uppercase tracking-wider font-bold">Support Client</div>
-                </div>
-              </div>
-            </motion.div>
           </motion.div>
         </div>
       </div>

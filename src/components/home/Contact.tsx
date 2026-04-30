@@ -184,17 +184,6 @@ const Contact = () => {
             </div>
           </div>
         </div>
-        <div className="mt-12 flex justify-center">
-          <a
-            href="/admin"
-            className="flex items-center gap-2 text-slate-400 hover:text-brand-primary transition-colors text-sm font-medium group"
-          >
-            <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center group-hover:bg-brand-primary/10 transition-colors">
-              <Mail size={14} className="group-hover:text-brand-primary" />
-            </div>
-            Connexion Administrateur
-          </a>
-        </div>
       </div>
     </section>
   );

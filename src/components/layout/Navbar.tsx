@@ -44,29 +44,17 @@ const Navbar = () => {
                   ease: "easeInOut",
                   times: [0, 0.4, 0.7, 1]
                 }}
-                className="h-10 flex items-center justify-center overflow-hidden"
+                className="h-14 flex items-center justify-center overflow-hidden"
               >
-                <div className="h-10 w-auto flex items-center">
+                <div className="h-16 w-auto flex items-center">
                   <img 
-                    src="https://intechdigital.xyz/wp-content/uploads/2024/02/cropped-favicon-intech-192x192.png" 
-                    alt="Intech Logo" 
+                    src="https://lh3.googleusercontent.com/d/1cxIXjits5QZ9ROgeNKyiP__nVNmi6Xx5" 
+                    alt="Intech Digital Logo" 
                     className="h-full w-auto object-contain"
                     referrerPolicy="no-referrer"
                   />
-                  <img 
-                    src="https://intechdigital.xyz/wp-content/uploads/2024/02/logo-intech.png" 
-                    alt="Intech Digital Logo" 
-                    className="h-full w-auto object-contain ml-2 hidden sm:block"
-                    referrerPolicy="no-referrer"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).style.display = 'none';
-                    }}
-                  />
                 </div>
               </motion.div>
-              <span className="text-xl font-bold font-display tracking-tight text-slate-900">
-                Intech<span className="text-brand-primary"> Digital DRC</span>
-              </span>
             </motion.a>
           </div>
 

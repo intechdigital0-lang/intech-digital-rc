@@ -113,10 +113,11 @@ const AdminDashboard = () => {
       
       if (error.code === 'auth/network-request-failed') {
         const domain = window.location.hostname;
-        const currentUrl = window.location.href;
-        setMessage(`Erreur réseau : La requête a été bloquée par le navigateur (souvent dû à l'Iframe). \n\n1. Vérifiez que "${domain}" est bien dans la console Firebase.\n2. Si c'est déjà fait, cliquez sur le bouton "Ouvrir en plein écran" ci-dessous pour contourner le blocage.`);
-        
-        // Add a retry link to the message container if needed, but for now we'll handle it in the UI
+        setMessage(`Erreur réseau de sécurité : Votre navigateur bloque la connexion Firebase à cause de l'Iframe.
+
+ACTIONS REQUISES :
+1. Ajoutez "${domain}" dans "Domaines autorisés" de votre console Firebase (Authentication > Settings).
+2. Cliquez sur le bouton ci-dessous pour ouvrir l'admin en dehors de l'Iframe.`);
       } else if (error.code === 'auth/user-not-found') {
         setMessage('Compte non trouvé. Vérifiez votre email.');
       } else if (error.code === 'auth/wrong-password') {
@@ -311,6 +312,14 @@ const AdminDashboard = () => {
           animate={{ opacity: 1, y: 0 }}
           className="max-w-md w-full bg-white p-10 rounded-[2rem] shadow-xl text-center"
         >
+          <div className="mb-6 flex justify-center">
+            <img 
+              src="https://lh3.googleusercontent.com/d/1cxIXjits5QZ9ROgeNKyiP__nVNmi6Xx5" 
+              alt="Intech Digital Logo" 
+              className="h-16 w-auto object-contain"
+              referrerPolicy="no-referrer"
+            />
+          </div>
           <div className="w-16 h-16 bg-brand-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-6 text-brand-primary">
             <Key size={32} />
           </div>
@@ -368,15 +377,21 @@ const AdminDashboard = () => {
               </p>
               
               {message.includes('Iframe') && (
-                <a 
-                  href={window.location.href} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-6 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-slate-800 transition-all shadow-lg"
+                <motion.div
+                  initial={{ scale: 0.95 }}
+                  animate={{ scale: [0.95, 1.05, 0.95] }}
+                  transition={{ repeat: Infinity, duration: 2 }}
                 >
-                  <ExternalLink size={14} />
-                  Ouvrir l'admin en plein écran
-                </a>
+                  <a 
+                    href={window.location.href} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-3 px-8 py-4 bg-brand-primary text-white rounded-2xl text-sm font-bold uppercase tracking-widest hover:bg-brand-primary/90 transition-all shadow-xl shadow-brand-primary/20"
+                  >
+                    <ExternalLink size={18} />
+                    Ouvrir en plein écran
+                  </a>
+                </motion.div>
               )}
             </div>
           )}

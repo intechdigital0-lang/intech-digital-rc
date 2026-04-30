@@ -18,6 +18,8 @@ async function testConnection() {
   } catch (error) {
     if(error instanceof Error && error.message.includes('the client is offline')) {
       console.error("Firebase connection error: the client is offline. Check your network.");
+    } else {
+      console.warn("Vérifiez que ce domaine est autorisé dans la console Firebase (Authentication > Paramètres > Domaines autorisés):", window.location.hostname);
     }
   }
 }
