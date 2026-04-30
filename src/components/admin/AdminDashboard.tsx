@@ -12,7 +12,7 @@ import { collection, doc, setDoc, deleteDoc, onSnapshot, query } from 'firebase/
 import { storageService } from '../../lib/storageService';
 import { PortfolioItem } from '../../types';
 import { motion, AnimatePresence } from 'motion/react';
-import { Plus, Trash2, LogOut, Key, Image as ImageIcon, Save, AlertCircle, MessageSquare, Star, Mail, Lock, Upload, Loader2, Edit2, X, ChevronLeft, ChevronRight, ExternalLink, Users, Shield } from 'lucide-react';
+import { Plus, Trash2, LogOut, Key, Image as ImageIcon, Save, AlertCircle, CheckCircle2, MessageSquare, Star, Mail, Lock, Upload, Loader2, Edit2, X, ChevronLeft, ChevronRight, ExternalLink, Users, Shield } from 'lucide-react';
 
 const ITEMS_PER_PAGE = 5;
 
@@ -153,37 +153,56 @@ ACTIONS REQUISES :
     setUser(null);
   };
 
+  const [uploadProgress, setUploadProgress] = useState(0);
+
   const handleFileUpload = async (file: File, folder: string, callback: (url: string) => void) => {
     if (!file) return;
     
-    // Check if user is actually authenticated
     if (!auth.currentUser) {
       setMessage("Erreur: Vous devez être connecté pour effectuer cette action.");
       return;
     }
 
     setIsUploading(true);
+    setUploadProgress(0);
     let localUrl = '';
+    const previousUrl = editingItem ? editingItem.imageUrl : newItem.imageUrl;
     
     try {
-      // Optimistic preview for immediate feedback
       localUrl = URL.createObjectURL(file);
       callback(localUrl);
       
       console.log(`Starting upload for ${file.name} to ${folder}...`);
       setMessage('Traitement de l\'image en cours...');
       
-      const url = await storageService.uploadImage(file, folder);
-      console.log(`Upload successful: ${url}`);
+      const url = await storageService.uploadImage(file, folder, (progress) => {
+        setUploadProgress(Math.round(progress));
+        if (progress < 100) {
+          setMessage(`Téléchargement en cours: ${Math.round(progress)}%`);
+        } else {
+          setMessage('Finalisation du téléchargement...');
+        }
+      });
       
+      console.log(`Upload successful: ${url}`);
       callback(url);
       setMessage('Image téléchargée avec succès. N\'oubliez pas d\'enregistrer les modifications.');
       setTimeout(() => setMessage(''), 5000);
     } catch (error: any) {
       console.error('Upload error detail:', error);
-      setMessage(`Erreur de téléchargement: ${error.message || 'Le service Firebase Storage a rejeté la requête. Vérifiez vos règles de sécurité.'}`);
+      // Revert to previous URL on failure
+      callback(previousUrl);
+      
+      let errorMsg = error.message || 'Le service Firebase Storage a rejeté la requête.';
+      if (error.code === 'storage/unauthorized') {
+        errorMsg = "Accès refusé. Vérifiez vos règles de sécurité Firebase Storage ou votre authentification.";
+      } else if (error.code === 'storage/retry-limit-exceeded') {
+        errorMsg = "Temps d'attente dépassé. Vérifiez votre connexion internet.";
+      }
+      setMessage(`Erreur: ${errorMsg}`);
     } finally {
       setIsUploading(false);
+      setUploadProgress(0);
     }
   };
 
@@ -477,19 +496,74 @@ ACTIONS REQUISES :
           </div>
         </div>
 
-        {message && (
-          <motion.div 
-            initial={{ opacity: 0, y: -10 }} 
-            animate={{ opacity: 1, y: 0 }} 
-            className={`mb-8 p-4 rounded-2xl text-center font-medium shadow-sm border ${
-              message.toLowerCase().includes('erreur') || message.toLowerCase().includes('incorrect') || message.toLowerCase().includes('non trouvé')
-                ? 'bg-red-50 text-red-600 border-red-100' 
-                : 'bg-emerald-50 text-emerald-600 border-emerald-100'
-            }`}
-          >
-            {message}
-          </motion.div>
-        )}
+        <AnimatePresence>
+          {message && (
+            <motion.div 
+              initial={{ opacity: 0, y: 50, x: '-50%' }} 
+              animate={{ opacity: 1, y: 0, x: '-50%' }} 
+              exit={{ opacity: 0, y: 50, x: '-50%' }}
+              className="fixed bottom-8 left-1/2 z-[200] max-w-md w-[calc(100%-2rem)] p-5 rounded-3xl shadow-2xl backdrop-blur-xl border flex flex-col gap-4"
+              style={{ 
+                backgroundColor: message.toLowerCase().includes('erreur') ? 'rgba(254, 242, 242, 0.95)' : 'rgba(236, 253, 245, 0.95)',
+                borderColor: message.toLowerCase().includes('erreur') ? 'rgba(252, 165, 165, 0.3)' : 'rgba(110, 231, 183, 0.3)',
+                color: message.toLowerCase().includes('erreur') ? '#dc2626' : '#059669'
+              }}
+            >
+              <div className="flex items-center gap-4">
+                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${
+                  message.toLowerCase().includes('erreur') ? 'bg-red-100 text-red-600' : 'bg-emerald-100 text-emerald-600'
+                }`}>
+                  {isUploading ? (
+                    <Loader2 className="animate-spin" size={24} />
+                  ) : message.toLowerCase().includes('erreur') ? (
+                    <AlertCircle size={24} />
+                  ) : (
+                    <CheckCircle2 size={24} />
+                  )}
+                </div>
+                
+                <div className="flex-1 overflow-hidden">
+                  <p className="text-sm font-bold leading-tight">
+                    {message}
+                  </p>
+                  {isUploading && uploadProgress > 0 && (
+                    <div className="mt-2 w-full h-1.5 bg-slate-200/50 rounded-full overflow-hidden">
+                      <motion.div 
+                        initial={{ width: 0 }}
+                        animate={{ width: `${uploadProgress}%` }}
+                        className="h-full bg-current"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                <button 
+                  onClick={() => setMessage('')} 
+                  className="p-2 hover:bg-black/5 rounded-xl transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              {isUploading && (
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => {
+                      setIsUploading(false);
+                      setUploadProgress(0);
+                      setMessage('Opération débloquée manuellement.');
+                      setTimeout(() => setMessage(''), 2000);
+                    }}
+                    className="flex-1 py-3 px-4 bg-white/50 hover:bg-white text-[10px] font-bold uppercase tracking-widest rounded-xl border border-black/5 transition-all shadow-sm flex items-center justify-center gap-2"
+                  >
+                    <LogOut size={14} className="rotate-90" />
+                    Forcer le déblocage
+                  </button>
+                </div>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <AnimatePresence mode="wait">
           {activeTab === 'content' ? (
@@ -510,6 +584,15 @@ ACTIONS REQUISES :
                   <div className="space-y-8">
                     <div className="space-y-3">
                       <label className="text-sm font-bold text-slate-700">Image de couverture (Hero)</label>
+                      {isUploading && uploadProgress > 0 && heroUrl.startsWith('blob:') && (
+                        <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                          <motion.div 
+                            initial={{ width: 0 }}
+                            animate={{ width: `${uploadProgress}%` }}
+                            className="h-full bg-brand-primary"
+                          />
+                        </div>
+                      )}
                       <div className="relative group">
                         <label htmlFor="hero-upload" className="block cursor-pointer">
                           <input 
@@ -553,6 +636,15 @@ ACTIONS REQUISES :
                     
                     <div className="space-y-3 pt-6 border-t border-slate-100">
                       <label className="text-sm font-bold text-slate-700">Image "Pourquoi nous"</label>
+                      {isUploading && uploadProgress > 0 && whyUsUrl.startsWith('blob:') && (
+                        <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                          <motion.div 
+                            initial={{ width: 0 }}
+                            animate={{ width: `${uploadProgress}%` }}
+                            className="h-full bg-brand-primary"
+                          />
+                        </div>
+                      )}
                       <div className="relative group">
                         <label htmlFor="whyus-upload" className="block cursor-pointer">
                           <input 
@@ -643,12 +735,21 @@ ACTIONS REQUISES :
                       rows={3}
                       className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-100 outline-none resize-none"
                     />
-                    <div className="space-y-3">
-                      <label className="text-sm font-bold text-slate-700 flex items-center gap-2">
-                        <ImageIcon size={16} className="text-brand-primary" />
-                        Photo principale du projet
-                      </label>
-                      <div className="relative">
+                      <div className="space-y-3">
+                        <label className="text-sm font-bold text-slate-700 flex items-center gap-2">
+                          <ImageIcon size={16} className="text-brand-primary" />
+                          Photo principale du projet
+                        </label>
+                        {isUploading && uploadProgress > 0 && (
+                          <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden mb-2">
+                            <motion.div 
+                              initial={{ width: 0 }}
+                              animate={{ width: `${uploadProgress}%` }}
+                              className="h-full bg-brand-primary"
+                            />
+                          </div>
+                        )}
+                        <div className="relative">
                         <input 
                           type="file" 
                           accept="image/*"
@@ -746,21 +847,27 @@ ACTIONS REQUISES :
                                 }
 
                                 setIsUploading(true);
+                                setUploadProgress(0);
                                 setMessage(`Préparation de ${files.length} photos...`);
                                 
                                 const fileArray = Array.from(files) as File[];
                                 let successCount = 0;
                                 
-                                for (const file of fileArray) {
+                                for (let i = 0; i < fileArray.length; i++) {
+                                  const file = fileArray[i];
+                                  let tempUrl = '';
                                   try {
-                                    const tempUrl = URL.createObjectURL(file);
+                                    tempUrl = URL.createObjectURL(file);
                                     if (editingItem) {
                                       setEditingItem(prev => prev ? {...prev, images: [...(prev.images || []), tempUrl]} : null);
                                     } else {
                                       setNewItem(prev => ({...prev, images: [...prev.images, tempUrl]}));
                                     }
 
-                                    const url = await storageService.uploadImage(file, 'portfolio');
+                                    setMessage(`Upload photo ${i + 1}/${fileArray.length}...`);
+                                    const url = await storageService.uploadImage(file, 'portfolio', (progress) => {
+                                      setUploadProgress(Math.round(progress));
+                                    });
                                     
                                     if (editingItem) {
                                       setEditingItem(prev => {
@@ -777,12 +884,28 @@ ACTIONS REQUISES :
                                     successCount++;
                                   } catch (uploadError: any) {
                                     console.error('Error uploading individual gallery file:', uploadError);
-                                    setMessage(`Erreur sur une photo: ${uploadError.message}`);
+                                    setMessage(`Erreur photo ${i + 1}: ${uploadError.message}`);
+                                    
+                                    // Clean up blob URL on failure so it doesn't block the "Publish" button
+                                    if (editingItem) {
+                                      setEditingItem(prev => {
+                                        if (!prev) return null;
+                                        return {...prev, images: (prev.images || []).filter(img => img !== tempUrl)};
+                                      });
+                                    } else {
+                                      setNewItem(prev => ({
+                                        ...prev, 
+                                        images: prev.images.filter(img => img !== tempUrl)
+                                      }));
+                                    }
                                   }
                                 }
                                 
-                                setMessage(`${successCount} photos ajoutées avec succès`);
+                                if (successCount > 0) {
+                                  setMessage(`${successCount} photos ajoutées avec succès`);
+                                }
                                 setIsUploading(false);
+                                setUploadProgress(0);
                                 setTimeout(() => setMessage(''), 3000);
                               }
                             }}

@@ -1,35 +1,54 @@
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { storage } from './firebase';
 import imageCompression from 'browser-image-compression';
 
 export const storageService = {
-  async uploadImage(file: File, folder: string): Promise<string> {
-    // Compression options
-    const options = {
-      maxSizeMB: 0.8, // Reduced for faster compression
-      maxWidthOrHeight: 1600, // Reduced for faster compression
-      useWebWorker: true,
-      initialQuality: 0.8
-    };
-
+  async uploadImage(file: File, folder: string, onProgress?: (progress: number) => void): Promise<string> {
+    console.log(`[Storage] Starting process for ${file.name} (${file.size} bytes) in ${folder}`);
+    
+    // Skip heavy compression for now to improve reliability in dev environment
     let fileToUpload: File | Blob = file;
 
-    try {
-      // ONLY compress if it's an image and actually needs compression (> 500KB)
-      if (file.type.startsWith('image/') && file.size > 500 * 1024) {
-        fileToUpload = await imageCompression(file, options);
-      }
-    } catch (error) {
-      console.warn('Compression failed, uploading original file:', error);
-      // Fallback to original file if compression fails
-      fileToUpload = file;
-    }
-
-    const filename = `${Date.now()}_${file.name}`;
+    const filename = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
     const storageRef = ref(storage, `${folder}/${filename}`);
     
-    await uploadBytes(storageRef, fileToUpload);
-    const downloadURL = await getDownloadURL(storageRef);
-    return downloadURL;
+    console.log('[Storage] Starting Firebase upload...');
+    
+    return new Promise((resolve, reject) => {
+      const uploadTask = uploadBytesResumable(storageRef, fileToUpload);
+
+      // Safety timeout after 45 seconds
+      const timeout = setTimeout(() => {
+        try {
+          uploadTask.cancel();
+        } catch (e) {
+          console.error('[Storage] Cancel failed:', e);
+        }
+        reject(new Error('Temps d\'attente dépassé (45s). Vérifiez votre connexion.'));
+      }, 45000);
+
+      uploadTask.on('state_changed', 
+        (snapshot) => {
+          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          console.log(`[Storage] Upload: ${progress.toFixed(1)}%`);
+          if (onProgress) onProgress(progress);
+        }, 
+        (error) => {
+          clearTimeout(timeout);
+          console.error('[Storage] Upload failed:', error);
+          reject(error);
+        }, 
+        async () => {
+          clearTimeout(timeout);
+          console.log('[Storage] Success, getting URL...');
+          try {
+            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+            resolve(downloadURL);
+          } catch (err) {
+            reject(err);
+          }
+        }
+      );
+    });
   }
 };

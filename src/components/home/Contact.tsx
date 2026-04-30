@@ -11,36 +11,73 @@ const Contact = () => {
     message: ''
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
     if (!formData.name.trim()) newErrors.name = 'Le nom est requis';
+    else if (formData.name.trim().length < 2) newErrors.name = 'Nom trop court';
+
     if (!formData.email.trim()) {
       newErrors.email = 'L\'email est requis';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = 'Format d\'email invalide';
     }
+
     if (!formData.message.trim()) newErrors.message = 'Le message est requis';
+    else if (formData.message.trim().length < 10) newErrors.message = 'Message trop court (min. 10 car.)';
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { id, value } = e.target;
-    setFormData(prev => ({ ...prev, [id]: value }));
-    // Clear error when user starts typing
-    if (errors[id]) {
-      setErrors(prev => {
+  const validateField = (id: string, value: string) => {
+    let error = '';
+    if (id === 'name') {
+      if (!value.trim()) error = 'Le nom est requis';
+      else if (value.trim().length < 2) error = 'Nom trop court';
+    } else if (id === 'email') {
+      if (!value.trim()) {
+        error = 'L\'email est requis';
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+        error = 'Format d\'email invalide';
+      }
+    } else if (id === 'message') {
+      if (!value.trim()) error = 'Le message est requis';
+      else if (value.trim().length < 10) error = 'Message trop court (min. 10 car.)';
+    }
+    
+    setErrors(prev => {
+      if (!error) {
         const next = { ...prev };
         delete next[id];
         return next;
-      });
+      }
+      return { ...prev, [id]: error };
+    });
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { id, value } = e.target;
+    setFormData(prev => ({ ...prev, [id]: value }));
+    
+    if (touched[id]) {
+      validateField(id, value);
     }
+  };
+
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { id, value } = e.target;
+    setTouched(prev => ({ ...prev, [id]: true }));
+    validateField(id, value);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Mark all as touched
+    const allTouched = Object.keys(formData).reduce((acc, key) => ({ ...acc, [key]: true }), {});
+    setTouched(allTouched);
     
     if (!validateForm()) return;
     
@@ -112,7 +149,15 @@ const Contact = () => {
                     <div className="space-y-1">
                       <div className="flex justify-between items-center">
                         <label htmlFor="name" className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Nom</label>
-                        {errors.name && <span className="text-[10px] font-bold text-rose-500 uppercase leading-none">{errors.name}</span>}
+                        {errors.name && (
+                          <motion.span 
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            className="text-[10px] font-bold text-rose-500 uppercase leading-none"
+                          >
+                            {errors.name}
+                          </motion.span>
+                        )}
                       </div>
                       <input
                         id="name"
@@ -120,10 +165,15 @@ const Contact = () => {
                         placeholder="Votre nom"
                         value={formData.name}
                         onChange={handleChange}
+                        onBlur={handleBlur}
                         aria-required="true"
                         aria-invalid={!!errors.name}
-                        className={`w-full px-4 py-3 rounded-xl bg-slate-50 border outline-none transition-all ${
-                          errors.name ? 'border-rose-200 focus:border-rose-500 focus:ring-rose-200' : 'border-slate-100 focus:border-brand-primary focus:ring-brand-primary/20'
+                        className={`w-full px-4 py-3 rounded-xl bg-slate-50 border outline-none transition-all shadow-sm ${
+                          errors.name 
+                            ? 'border-rose-300 focus:border-rose-500 ring-4 ring-rose-500/10' 
+                            : touched.name && !errors.name 
+                              ? 'border-emerald-300 focus:border-emerald-500 ring-4 ring-emerald-500/10'
+                              : 'border-slate-100 focus:border-brand-primary ring-4 ring-transparent focus:ring-brand-primary/20'
                         }`}
                       />
                     </div>
@@ -135,14 +185,23 @@ const Contact = () => {
                         placeholder="N° WhatsApp"
                         value={formData.whatsapp}
                         onChange={handleChange}
-                        className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-100 focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20 outline-none transition-all"
+                        onBlur={handleBlur}
+                        className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-100 focus:border-brand-primary ring-4 ring-transparent focus:ring-brand-primary/20 outline-none transition-all shadow-sm"
                       />
                     </div>
                   </div>
                   <div className="space-y-1">
                     <div className="flex justify-between items-center">
                       <label htmlFor="email" className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Email</label>
-                      {errors.email && <span className="text-[10px] font-bold text-rose-500 uppercase leading-none">{errors.email}</span>}
+                      {errors.email && (
+                        <motion.span 
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          className="text-[10px] font-bold text-rose-500 uppercase leading-none"
+                        >
+                          {errors.email}
+                        </motion.span>
+                      )}
                     </div>
                     <input
                       id="email"
@@ -150,17 +209,30 @@ const Contact = () => {
                       placeholder="Votre email"
                       value={formData.email}
                       onChange={handleChange}
+                      onBlur={handleBlur}
                       aria-required="true"
                       aria-invalid={!!errors.email}
-                      className={`w-full px-4 py-3 rounded-xl bg-slate-50 border outline-none transition-all ${
-                        errors.email ? 'border-rose-200 focus:border-rose-500 focus:ring-rose-200' : 'border-slate-100 focus:border-brand-primary focus:ring-brand-primary/20'
+                      className={`w-full px-4 py-3 rounded-xl bg-slate-50 border outline-none transition-all shadow-sm ${
+                        errors.email 
+                          ? 'border-rose-300 focus:border-rose-500 ring-4 ring-rose-500/10' 
+                          : touched.email && !errors.email 
+                            ? 'border-emerald-300 focus:border-emerald-500 ring-4 ring-emerald-500/10'
+                            : 'border-slate-100 focus:border-brand-primary ring-4 ring-transparent focus:ring-brand-primary/20'
                       }`}
                     />
                   </div>
                   <div className="space-y-1">
                     <div className="flex justify-between items-center">
                       <label htmlFor="message" className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Message</label>
-                      {errors.message && <span className="text-[10px] font-bold text-rose-500 uppercase leading-none">{errors.message}</span>}
+                      {errors.message && (
+                        <motion.span 
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          className="text-[10px] font-bold text-rose-500 uppercase leading-none"
+                        >
+                          {errors.message}
+                        </motion.span>
+                      )}
                     </div>
                     <textarea
                       id="message"
@@ -168,10 +240,15 @@ const Contact = () => {
                       rows={4}
                       value={formData.message}
                       onChange={handleChange}
+                      onBlur={handleBlur}
                       aria-required="true"
                       aria-invalid={!!errors.message}
-                      className={`w-full px-4 py-3 rounded-xl bg-slate-50 border outline-none transition-all ${
-                        errors.message ? 'border-rose-200 focus:border-rose-500 focus:ring-rose-200' : 'border-slate-100 focus:border-brand-primary focus:ring-brand-primary/20'
+                      className={`w-full px-4 py-3 rounded-xl bg-slate-50 border outline-none transition-all shadow-sm ${
+                        errors.message 
+                          ? 'border-rose-300 focus:border-rose-500 ring-4 ring-rose-500/10' 
+                          : touched.message && !errors.message 
+                            ? 'border-emerald-300 focus:border-emerald-500 ring-4 ring-emerald-500/10'
+                            : 'border-slate-100 focus:border-brand-primary ring-4 ring-transparent focus:ring-brand-primary/20'
                       }`}
                     ></textarea>
                   </div>

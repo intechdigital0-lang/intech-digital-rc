@@ -14,6 +14,8 @@ const Portfolio = () => {
   const [selectedItem, setSelectedItem] = useState<PortfolioItem | null>(null);
   const [currentImageIdx, setCurrentImageIdx] = useState(0);
   const [isZoomed, setIsZoomed] = useState(false);
+  const [currentPage, setCurrentPage] = useState(0);
+  const itemsPerPage = 8;
 
   useEffect(() => {
     const unsubscribe = portfolioService.subscribeToItems((newItems) => {
@@ -28,6 +30,16 @@ const Portfolio = () => {
   const filteredItems = selectedCategory === 'Tous' 
     ? items 
     : items.filter(item => item.category === selectedCategory);
+
+  const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+  const paginatedItems = filteredItems.slice(
+    currentPage * itemsPerPage,
+    (currentPage + 1) * itemsPerPage
+  );
+
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [selectedCategory]);
 
   const openGallery = (item: PortfolioItem) => {
     setSelectedItem(item);
@@ -197,69 +209,126 @@ const Portfolio = () => {
             </p>
           </motion.div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <AnimatePresence mode="popLayout">
-              {filteredItems.map((item) => (
-                <motion.div
-                  key={item.id}
-                  layout
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  whileHover={{ 
-                    scale: 1.03,
-                    y: -8,
-                    boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)"
-                  }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  transition={{ 
-                    layout: { duration: 0.3 },
-                    scale: { type: "spring", stiffness: 400, damping: 25 },
-                    y: { type: "spring", stiffness: 400, damping: 25 }
-                  }}
-                  onClick={() => openGallery(item)}
-                  role="button"
-                  aria-label={`Voir les détails du projet ${item.title}`}
-                  className="group relative rounded-3xl overflow-hidden bg-white shadow-lg h-[400px] cursor-pointer"
-                >
-                {/* Loading Skeleton */}
-                {!loadedImages[item.id] && (
-                  <div className="absolute inset-0 bg-slate-100 flex flex-col p-8 overflow-hidden">
-                    <div className="w-full h-full bg-slate-200 animate-pulse rounded-2xl mb-4" />
-                    <div className="space-y-3">
-                      <div className="h-4 bg-slate-200 animate-pulse rounded-full w-24" />
-                      <div className="h-6 bg-slate-200 animate-pulse rounded-full w-48" />
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              <AnimatePresence mode="popLayout">
+                {paginatedItems.map((item) => (
+                  <motion.div
+                    key={item.id}
+                    layout
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    whileHover={{ 
+                      scale: 1.03,
+                      y: -8,
+                      boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)"
+                    }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    transition={{ 
+                      layout: { duration: 0.3 },
+                      scale: { type: "spring", stiffness: 400, damping: 25 },
+                      y: { type: "spring", stiffness: 400, damping: 25 }
+                    }}
+                    onClick={() => openGallery(item)}
+                    role="button"
+                    aria-label={`Voir les détails du projet ${item.title}`}
+                    className="group relative rounded-3xl overflow-hidden bg-white shadow-lg h-[400px] cursor-pointer"
+                  >
+                  {/* Loading Skeleton */}
+                  {!loadedImages[item.id] && (
+                    <div className="absolute inset-0 bg-slate-100 flex flex-col p-8 overflow-hidden">
+                      <div className="w-full h-full bg-slate-200 animate-pulse rounded-2xl mb-4" />
+                      <div className="space-y-3">
+                        <div className="h-4 bg-slate-200 animate-pulse rounded-full w-24" />
+                        <div className="h-6 bg-slate-200 animate-pulse rounded-full w-48" />
+                      </div>
                     </div>
+                  )}
+                  
+                  <img
+                    src={item.imageUrl}
+                    alt={item.title}
+                    onLoad={() => setLoadedImages(prev => ({ ...prev, [item.id]: true }))}
+                    className={`w-full h-full object-cover transition-all duration-700 group-hover:scale-110 ${
+                      loadedImages[item.id] ? 'opacity-100 scale-100' : 'opacity-0 scale-105'
+                    }`}
+                    referrerPolicy="no-referrer"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/40 to-transparent flex flex-col justify-end p-8">
+                    <div className="absolute top-4 right-4 w-10 h-10 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Maximize2 size={20} aria-hidden="true" />
+                    </div>
+                    <div className="flex items-center gap-3 mb-2">
+                      <span className="text-brand-primary text-xs font-bold uppercase tracking-widest">{item.category}</span>
+                      <span className="w-1 h-1 bg-white/30 rounded-full" />
+                      <span className="text-white/50 text-[10px] font-bold uppercase tracking-widest">
+                        {item.images && item.images.length > 0 ? `${item.images.length + 1} photos` : '1 photo'}
+                      </span>
+                    </div>
+                    <h3 className="text-white text-xl font-bold">{item.title}</h3>
+                    <div className="w-10 h-px bg-white/30 group-hover:w-full transition-all duration-500 mt-4" />
                   </div>
-                )}
-                
-                <img
-                  src={item.imageUrl}
-                  alt={item.title}
-                  onLoad={() => setLoadedImages(prev => ({ ...prev, [item.id]: true }))}
-                  className={`w-full h-full object-cover transition-all duration-700 group-hover:scale-110 ${
-                    loadedImages[item.id] ? 'opacity-100 scale-100' : 'opacity-0 scale-105'
-                  }`}
-                  referrerPolicy="no-referrer"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/40 to-transparent flex flex-col justify-end p-8">
-                  <div className="absolute top-4 right-4 w-10 h-10 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Maximize2 size={20} aria-hidden="true" />
+                </motion.div>
+              ))}
+              </AnimatePresence>
+            </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="flex flex-col items-center gap-6 mt-16">
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
+                    disabled={currentPage === 0}
+                    className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all ${
+                      currentPage === 0 
+                        ? 'text-slate-300 cursor-not-allowed' 
+                        : 'text-slate-600 bg-white border border-slate-100 hover:border-brand-primary hover:text-brand-primary hover:shadow-lg shadow-brand-primary/10'
+                    }`}
+                    aria-label="Page précédente"
+                  >
+                    <ChevronLeft size={20} />
+                  </button>
+
+                  <div className="flex items-center gap-2">
+                    {[...Array(totalPages)].map((_, i) => (
+                      <button
+                        key={i}
+                        onClick={() => setCurrentPage(i)}
+                        className={`w-12 h-12 rounded-2xl text-sm font-bold transition-all ${
+                          currentPage === i
+                            ? 'bg-brand-primary text-white shadow-lg shadow-brand-primary/20 scale-110'
+                            : 'bg-white text-slate-500 border border-slate-100 hover:border-brand-primary/50'
+                        }`}
+                        aria-label={`Page ${i + 1}`}
+                      >
+                        {i + 1}
+                      </button>
+                    ))}
                   </div>
-                  <div className="flex items-center gap-3 mb-2">
-                    <span className="text-brand-primary text-xs font-bold uppercase tracking-widest">{item.category}</span>
-                    <span className="w-1 h-1 bg-white/30 rounded-full" />
-                    <span className="text-white/50 text-[10px] font-bold uppercase tracking-widest">
-                      {item.images && item.images.length > 0 ? `${item.images.length + 1} photos` : '1 photo'}
-                    </span>
-                  </div>
-                  <h3 className="text-white text-xl font-bold">{item.title}</h3>
-                  <div className="w-10 h-px bg-white/30 group-hover:w-full transition-all duration-500 mt-4" />
+
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.min(totalPages - 1, prev + 1))}
+                    disabled={currentPage === totalPages - 1}
+                    className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all ${
+                      currentPage === totalPages - 1 
+                        ? 'text-slate-300 cursor-not-allowed' 
+                        : 'text-slate-600 bg-white border border-slate-100 hover:border-brand-primary hover:text-brand-primary hover:shadow-lg shadow-brand-primary/10'
+                    }`}
+                    aria-label="Page suivante"
+                  >
+                    <ChevronRight size={20} />
+                  </button>
                 </div>
-              </motion.div>
-            ))}
-            </AnimatePresence>
-          </div>
+                
+                <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">
+                  Affichage de {paginatedItems.length} sur {filteredItems.length} projets
+                </p>
+              </div>
+            )}
+          </>
         )}
+
       </div>
 
       {/* Enhanced Project Details Modal */}
