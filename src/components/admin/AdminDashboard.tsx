@@ -6,13 +6,12 @@ import {
   User,
   signInWithEmailAndPassword
 } from 'firebase/auth';
-import { auth, isUserAdmin, checkAdminStatus, db } from '../../lib/firebase';
-import { portfolioService, settingsService, testimonialService } from '../../lib/firestoreService';
-import { collection, doc, setDoc, deleteDoc, onSnapshot, query } from 'firebase/firestore';
+import { auth, isUserAdmin, checkAdminStatus } from '../../lib/firebase';
+import { portfolioService } from '../../lib/firestoreService';
 import { storageService } from '../../lib/storageService';
 import { PortfolioItem } from '../../types';
 import { motion, AnimatePresence } from 'motion/react';
-import { Plus, Trash2, LogOut, Key, Image as ImageIcon, Save, AlertCircle, CheckCircle2, MessageSquare, Star, Mail, Lock, Upload, Loader2, Edit2, X, ChevronLeft, ChevronRight, ExternalLink, Users, Shield } from 'lucide-react';
+import { Plus, Trash2, LogOut, Image as ImageIcon, Save, AlertCircle, CheckCircle2, Upload, Loader2, Edit2, X, ChevronLeft, ChevronRight, ExternalLink } from 'lucide-react';
 
 const ITEMS_PER_PAGE = 5;
 
@@ -23,17 +22,10 @@ const AdminDashboard = () => {
   const [password, setPassword] = useState('');
   
   const [items, setItems] = useState<PortfolioItem[]>([]);
-  const [testimonials, setTestimonials] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
   const [portfolioPage, setPortfolioPage] = useState(1);
-  const [testimonialsPage, setTestimonialsPage] = useState(1);
-  const [activeTab, setActiveTab] = useState<'content' | 'admins'>('content');
-  const [adminList, setAdminList] = useState<any[]>([]);
-  const [newAdmin, setNewAdmin] = useState({ userId: '', email: '', role: 'Admin' });
-
   const totalPortfolioPages = Math.ceil(items.length / ITEMS_PER_PAGE);
-  const totalTestimonialPages = Math.ceil(testimonials.length / ITEMS_PER_PAGE);
 
   useEffect(() => {
     if (portfolioPage > totalPortfolioPages && totalPortfolioPages > 0) {
@@ -42,31 +34,13 @@ const AdminDashboard = () => {
       setPortfolioPage(1);
     }
   }, [items.length, totalPortfolioPages, portfolioPage]);
-
-  useEffect(() => {
-    if (testimonialsPage > totalTestimonialPages && totalTestimonialPages > 0) {
-      setTestimonialsPage(totalTestimonialPages);
-    } else if (testimonials.length > 0 && testimonialsPage === 0) {
-      setTestimonialsPage(1);
-    }
-  }, [testimonials.length, totalTestimonialPages, testimonialsPage]);
   
   const [newItem, setNewItem] = useState({ title: '', category: '', description: '', imageUrl: '', images: [] as string[] });
   const [editingItem, setEditingItem] = useState<PortfolioItem | null>(null);
-  const [newTestimonial, setNewTestimonial] = useState({ 
-    name: '', 
-    role: '', 
-    comment: '', 
-    rating: 5, 
-    avatarUrl: 'https://images.unsplash.com/photo-1548142813-c348350df52b?w=100&h=100&fit=crop' 
-  });
-  
-  const [heroUrl, setHeroUrl] = useState('');
-  const [whyUsUrl, setWhyUsUrl] = useState('');
   const [message, setMessage] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
-  const [deleteInfo, setDeleteInfo] = useState<{ id: string; type: 'portfolio' | 'testimonial'; title: string } | null>(null);
+  const [deleteInfo, setDeleteInfo] = useState<{ id: string; type: 'portfolio'; title: string } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
@@ -84,30 +58,9 @@ const AdminDashboard = () => {
     return () => unsubscribeAuth();
   }, []);
 
-  useEffect(() => {
-    if (isAdminLocally && activeTab === 'admins') {
-      const q = query(collection(db, 'admins'));
-      const unsubscribe = onSnapshot(q, (snapshot) => {
-        const list = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setAdminList(list);
-      });
-      return () => unsubscribe();
-    }
-  }, [isAdminLocally, activeTab]);
-
   const setupSubscriptions = () => {
     const unsubPortfolio = portfolioService.subscribeToItems(setItems);
-    const unsubTestimonials = testimonialService.subscribeToItems(setTestimonials);
-    
-    settingsService.getSettings().then(s => {
-      if (s?.heroImageUrl) setHeroUrl(s.heroImageUrl);
-      if (s?.whyUsImageUrl) setWhyUsUrl(s.whyUsImageUrl);
-    });
-
-    return () => {
-      unsubPortfolio();
-      unsubTestimonials();
-    };
+    return () => unsubPortfolio();
   };
 
   useEffect(() => {
@@ -256,19 +209,11 @@ ACTIONS REQUISES :
     setDeleteInfo({ id: item.id, type: 'portfolio', title: item.title });
   };
 
-  const handleDeleteTestimonial = (testimonial: any) => {
-    setDeleteInfo({ id: testimonial.id, type: 'testimonial', title: testimonial.name });
-  };
-
   const confirmDelete = async () => {
     if (!deleteInfo) return;
     setIsDeleting(true);
     try {
-      if (deleteInfo.type === 'portfolio') {
-        await portfolioService.deleteItem(deleteInfo.id);
-      } else {
-        await testimonialService.deleteItem(deleteInfo.id);
-      }
+      await portfolioService.deleteItem(deleteInfo.id);
       setMessage('Élément supprimé avec succès');
       setTimeout(() => setMessage(''), 3000);
     } catch (error) {
@@ -307,73 +252,6 @@ ACTIONS REQUISES :
         </button>
       </div>
     );
-  };
-
-  const handleAddTestimonial = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newTestimonial.name || !newTestimonial.role || !newTestimonial.comment) return;
-    try {
-      await testimonialService.addItem(newTestimonial);
-      setNewTestimonial({ 
-        name: '', 
-        role: '', 
-        comment: '', 
-        rating: 5, 
-        avatarUrl: 'https://images.unsplash.com/photo-1548142813-c348350df52b?w=100&h=100&fit=crop' 
-      });
-      setMessage('Témoignage ajouté avec succès');
-      setTimeout(() => setMessage(''), 3000);
-    } catch (error) {
-      setMessage('Erreur lors de l\'ajout');
-    }
-  };
-
-  const handleUpdateHero = async () => {
-    try {
-      await settingsService.updateHeroImage(heroUrl);
-      setMessage('Image Hero mise à jour');
-      setTimeout(() => setMessage(''), 3000);
-    } catch (error) {
-      setMessage('Erreur mise à jour image');
-    }
-  };
-
-  const handleUpdateWhyUs = async () => {
-    try {
-      await settingsService.updateWhyUsImage(whyUsUrl);
-      setMessage('Image "Pourquoi nous" mise à jour');
-      setTimeout(() => setMessage(''), 3000);
-    } catch (error) {
-      setMessage('Erreur mise à jour image');
-    }
-  };
-
-  const handleAddAdmin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newAdmin.userId) return;
-    try {
-      await setDoc(doc(db, 'admins', newAdmin.userId), {
-        email: newAdmin.email,
-        role: newAdmin.role,
-        addedAt: new Date().toISOString()
-      });
-      setNewAdmin({ userId: '', email: '', role: 'Admin' });
-      setMessage('Admin ajouté avec succès');
-      setTimeout(() => setMessage(''), 3000);
-    } catch (error) {
-      setMessage('Erreur lors de l\'ajout de l\'admin');
-    }
-  };
-
-  const handleDeleteAdmin = async (id: string) => {
-    if (!window.confirm('Supprimer cet accès admin ?')) return;
-    try {
-      await deleteDoc(doc(db, 'admins', id));
-      setMessage('Admin supprimé');
-      setTimeout(() => setMessage(''), 3000);
-    } catch (error) {
-      setMessage('Erreur de suppression');
-    }
   };
 
   if (loading) return <div className="min-h-screen flex items-center justify-center">Chargement...</div>;
@@ -483,22 +361,6 @@ ACTIONS REQUISES :
             <p className="text-slate-500">Gérez le contenu et les accès de Intech Digital DRC</p>
           </div>
           <div className="flex items-center gap-4">
-            <div className="bg-white p-1 rounded-xl shadow-sm flex border border-slate-100">
-              <button 
-                onClick={() => setActiveTab('content')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'content' ? 'bg-brand-primary text-white shadow-lg shadow-brand-primary/20' : 'text-slate-500 hover:bg-slate-50'}`}
-              >
-                <Edit2 size={16} />
-                Contenu
-              </button>
-              <button 
-                onClick={() => setActiveTab('admins')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'admins' ? 'bg-brand-primary text-white shadow-lg shadow-brand-primary/20' : 'text-slate-500 hover:bg-slate-50'}`}
-              >
-                <Users size={16} />
-                Accès Admin
-              </button>
-            </div>
             <button onClick={handleLogout} className="flex items-center gap-2 text-slate-600 hover:text-red-500 transition-colors bg-white px-4 py-2 rounded-xl shadow-sm font-bold text-sm">
               <LogOut size={20} />
               Déconnexion
@@ -575,662 +437,319 @@ ACTIONS REQUISES :
           )}
         </AnimatePresence>
 
-        <AnimatePresence mode="wait">
-          {activeTab === 'content' ? (
-            <motion.div 
-              key="content"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              className="grid lg:grid-cols-3 gap-8"
-            >
-              <div className="lg:col-span-1 space-y-8">
-                {/* Global Settings */}
-                <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
-                  <div className="flex items-center gap-3 mb-6">
-                    <ImageIcon className="text-brand-primary" size={24} />
-                    <h2 className="text-xl font-bold">Images Globales</h2>
-                  </div>
-                  <div className="space-y-8">
-                    <div className="space-y-3">
-                      <label className="text-sm font-bold text-slate-700">Image de couverture (Hero)</label>
-                      <input 
-                        type="text"
-                        value={heroUrl}
-                        onChange={(e) => setHeroUrl(getDirectDriveLink(e.target.value))}
-                        placeholder="Lien direct ou Drive..."
-                        className="w-full px-4 py-2 rounded-xl bg-slate-50 border border-slate-100 outline-none text-xs"
-                      />
-                      {isUploading && uploadProgress > 0 && heroUrl.startsWith('blob:') && (
-                        <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                          <motion.div 
-                            initial={{ width: 0 }}
-                            animate={{ width: `${uploadProgress}%` }}
-                            className="h-full bg-brand-primary"
-                          />
-                        </div>
-                      )}
-                      <div className="relative group">
-                        <label htmlFor="hero-upload" className="block cursor-pointer">
-                          <input 
-                            type="file" 
-                            accept="image/*"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) handleFileUpload(file, 'settings', setHeroUrl);
-                            }}
-                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                            id="hero-upload"
-                          />
-                          <div className={`aspect-video rounded-2xl border-2 border-dashed flex flex-col items-center justify-center overflow-hidden transition-all ${
-                            heroUrl ? 'border-brand-primary/20 bg-brand-primary/5' : 'border-slate-200 bg-slate-50 hover:border-brand-primary/50'
-                          }`}>
-                            {heroUrl ? (
-                              <div className="relative w-full h-full">
-                                <img src={heroUrl} alt="Hero Preview" className="w-full h-full object-cover" />
-                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                  <Upload size={24} className="text-white" />
-                                </div>
-                              </div>
-                            ) : (
-                              <div className="flex flex-col items-center text-slate-400">
-                                {isUploading ? <Loader2 className="animate-spin" size={24} /> : <Upload size={24} />}
-                                <span className="text-xs font-bold mt-2">Importer</span>
-                              </div>
-                            )}
-                          </div>
-                        </label>
-                      </div>
-                      <button 
-                        onClick={handleUpdateHero} 
-                        disabled={isUploading || heroUrl.startsWith('blob:')}
-                        className={`btn-primary w-full py-2.5 text-xs ${isUploading || heroUrl.startsWith('blob:') ? 'opacity-50 cursor-not-allowed' : ''}`}
-                      >
-                        <Save size={16} />
-                        {isUploading ? 'Téléchargement...' : 'Mettre à jour la couverture'}
-                      </button>
-                    </div>
-                    
-                    <div className="space-y-3 pt-6 border-t border-slate-100">
-                      <label className="text-sm font-bold text-slate-700">Image "Pourquoi nous"</label>
-                      <input 
-                        type="text"
-                        value={whyUsUrl}
-                        onChange={(e) => setWhyUsUrl(getDirectDriveLink(e.target.value))}
-                        placeholder="Lien direct ou Drive..."
-                        className="w-full px-4 py-2 rounded-xl bg-slate-50 border border-slate-100 outline-none text-xs"
-                      />
-                      {isUploading && uploadProgress > 0 && whyUsUrl.startsWith('blob:') && (
-                        <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                          <motion.div 
-                            initial={{ width: 0 }}
-                            animate={{ width: `${uploadProgress}%` }}
-                            className="h-full bg-brand-primary"
-                          />
-                        </div>
-                      )}
-                      <div className="relative group">
-                        <label htmlFor="whyus-upload" className="block cursor-pointer">
-                          <input 
-                            type="file" 
-                            accept="image/*"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) handleFileUpload(file, 'settings', setWhyUsUrl);
-                            }}
-                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                            id="whyus-upload"
-                          />
-                          <div className={`aspect-video rounded-2xl border-2 border-dashed flex flex-col items-center justify-center overflow-hidden transition-all ${
-                            whyUsUrl ? 'border-brand-primary/20 bg-brand-primary/5' : 'border-slate-200 bg-slate-50 hover:border-brand-primary/50'
-                          }`}>
-                            {whyUsUrl ? (
-                              <div className="relative w-full h-full">
-                                <img src={whyUsUrl} alt="Why Us Preview" className="w-full h-full object-cover" />
-                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                  <Upload size={24} className="text-white" />
-                                </div>
-                              </div>
-                            ) : (
-                              <div className="flex flex-col items-center text-slate-400">
-                                {isUploading ? <Loader2 className="animate-spin" size={24} /> : <Upload size={24} />}
-                                <span className="text-xs font-bold mt-2">Importer</span>
-                              </div>
-                            )}
-                          </div>
-                        </label>
-                      </div>
-                      <button 
-                        onClick={handleUpdateWhyUs} 
-                        disabled={isUploading || whyUsUrl.startsWith('blob:')}
-                        className={`btn-primary w-full py-2.5 text-xs ${isUploading || whyUsUrl.startsWith('blob:') ? 'opacity-50 cursor-not-allowed' : ''}`}
-                      >
-                        <Save size={16} />
-                        {isUploading ? 'Téléchargement...' : 'Mettre à jour l\'image'}
-                      </button>
-                    </div>
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="grid lg:grid-cols-3 gap-8"
+        >
+          <div className="lg:col-span-1 space-y-8">
+            {/* Add Portfolio */}
+            <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  {editingItem ? <Edit2 className="text-brand-primary" size={24} /> : <Plus className="text-brand-primary" size={24} />}
+                  <div>
+                    <h2 className="text-xl font-bold">{editingItem ? 'Modifier Projet' : 'Ajouter un Projet'}</h2>
+                    <p className="text-xs text-slate-500 mt-1">Gérez vos réalisations du portfolio.</p>
                   </div>
                 </div>
-
-                {/* Add Portfolio */}
-                <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
-                  <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center gap-3">
-                      {editingItem ? <Edit2 className="text-brand-primary" size={24} /> : <Plus className="text-brand-primary" size={24} />}
-                      <div>
-                        <h2 className="text-xl font-bold">{editingItem ? 'Modifier Projet' : 'Ajouter un nouveau Projet'}</h2>
-                        <p className="text-xs text-slate-500 mt-1">Remplissez les détails pour publier une réalisation.</p>
-                      </div>
-                    </div>
-                    {editingItem && (
-                      <button onClick={() => setEditingItem(null)} className="p-2 hover:bg-slate-100 rounded-full text-slate-400">
-                        <X size={20} />
-                      </button>
-                    )}
-                  </div>
-                  <form onSubmit={editingItem ? handleUpdateItem : handleAddItem} className="space-y-4">
-                    <input 
-                      type="text" 
-                      value={editingItem ? editingItem.title : newItem.title}
-                      onChange={(e) => editingItem 
-                        ? setEditingItem({...editingItem, title: e.target.value})
-                        : setNewItem({...newItem, title: e.target.value})
-                      }
-                      placeholder="Titre du projet"
-                      className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-100 outline-none"
-                    />
-                    <input 
-                      type="text" 
-                      value={editingItem ? editingItem.category : newItem.category}
-                      onChange={(e) => editingItem 
-                        ? setEditingItem({...editingItem, category: e.target.value})
-                        : setNewItem({...newItem, category: e.target.value})
-                      }
-                      placeholder="Catégorie (ex: Design)"
-                      className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-100 outline-none"
-                    />
-                    <textarea 
-                      value={editingItem ? editingItem.description : newItem.description}
-                      onChange={(e) => editingItem 
-                        ? setEditingItem({...editingItem, description: e.target.value})
-                        : setNewItem({...newItem, description: e.target.value})
-                      }
-                      placeholder="Description détaillée du projet"
-                      rows={3}
-                      className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-100 outline-none resize-none"
-                    />
-                      <div className="space-y-3">
-                        <label className="text-sm font-bold text-slate-700 flex items-center gap-2">
-                          <ImageIcon size={16} className="text-brand-primary" />
-                          Photo du projet (Upload ou Lien Drive)
-                        </label>
-                        <input 
-                          type="text" 
-                          value={editingItem ? editingItem.imageUrl : newItem.imageUrl}
-                          onChange={(e) => {
-                            const val = getDirectDriveLink(e.target.value);
-                            if (editingItem) {
-                              setEditingItem({...editingItem, imageUrl: val});
-                            } else {
-                              setNewItem({...newItem, imageUrl: val});
-                            }
-                          }}
-                          placeholder="Collez un lien Drive ici ou utilisez l'upload ci-dessous"
-                          className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-100 outline-none text-xs"
-                        />
-                        {isUploading && uploadProgress > 0 && (
-                          <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden mb-2">
-                            <motion.div 
-                              initial={{ width: 0 }}
-                              animate={{ width: `${uploadProgress}%` }}
-                              className="h-full bg-brand-primary"
-                            />
-                          </div>
-                        )}
-                        <div className="relative">
-                        <input 
-                          type="file" 
-                          accept="image/*"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) {
-                              const callback = (url: string) => editingItem 
-                                ? setEditingItem({...editingItem, imageUrl: url})
-                                : setNewItem({...newItem, imageUrl: url});
-                              handleFileUpload(file, 'portfolio', callback);
-                            }
-                          }}
-                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                          id="portfolio-upload"
-                        />
-                        <div className={`w-full aspect-video rounded-2xl border-2 border-dashed transition-all flex flex-col items-center justify-center p-6 text-center ${
-                          (editingItem ? editingItem.imageUrl : newItem.imageUrl) 
-                            ? 'border-brand-primary/20 bg-brand-primary/5' 
-                            : 'border-slate-200 bg-slate-50 hover:border-brand-primary/50'
-                        }`}>
-                          {(editingItem ? editingItem.imageUrl : newItem.imageUrl) ? (
-                            <div className="relative w-full h-full">
-                              <img 
-                                src={editingItem ? editingItem.imageUrl : newItem.imageUrl} 
-                                alt="Preview" 
-                                className="w-full h-full object-cover rounded-xl shadow-sm" 
-                              />
-                              <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center rounded-xl">
-                                <p className="text-white text-sm font-bold flex items-center gap-2">
-                                  <Upload size={18} />
-                                  Changer la photo
-                                </p>
-                              </div>
-                            </div>
-                          ) : (
-                            <>
-                              <div className="w-12 h-12 bg-white rounded-2xl shadow-sm flex items-center justify-center text-brand-primary mb-3">
-                                {isUploading ? <Loader2 className="animate-spin" size={24} /> : <Upload size={24} />}
-                              </div>
-                              <p className="text-sm font-bold text-slate-900">Cliquez ou glissez une photo ici</p>
-                              <p className="text-xs text-slate-500 mt-1">Image principale (PNG, JPG jusqu'à 2Mo)</p>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-3 pt-4 border-t border-slate-100">
-                      <label className="text-sm font-bold text-slate-700 flex items-center gap-2">
-                        <Plus size={16} className="text-brand-primary" />
-                        Galerie photos (plusieurs possibles)
-                      </label>
-                      <div className="grid grid-cols-3 gap-3">
-                        {(editingItem ? editingItem.images : newItem.images)?.map((url, idx) => (
-                          <motion.div 
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            key={idx} 
-                            className="relative aspect-square rounded-xl overflow-hidden border border-slate-200 group shadow-sm"
-                          >
-                            <img src={url} alt="" className="w-full h-full object-cover transition-transform group-hover:scale-110" />
-                            <button 
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                if (editingItem) {
-                                  const newImages = [...(editingItem.images || [])];
-                                  newImages.splice(idx, 1);
-                                  setEditingItem({...editingItem, images: newImages});
-                                } else {
-                                  const newImages = [...newItem.images];
-                                  newImages.splice(idx, 1);
-                                  setNewItem({...newItem, images: newImages});
-                                }
-                              }}
-                              className="absolute inset-0 bg-red-500/90 text-white flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
-                            >
-                              <Trash2 size={20} />
-                              <span className="text-[10px] font-bold mt-1">Supprimer</span>
-                            </button>
-                          </motion.div>
-                        ))}
-                        
-                        <div className="relative aspect-square">
-                          <input 
-                            type="file" 
-                            accept="image/*"
-                            multiple
-                            onChange={async (e) => {
-                              const files = e.target.files;
-                              if (files && files.length > 0) {
-                                if (!auth.currentUser) {
-                                  setMessage("Erreur: Authentification Firebase requise pour uploader des photos.");
-                                  return;
-                                }
-
-                                setIsUploading(true);
-                                setUploadProgress(0);
-                                setMessage(`Préparation de ${files.length} photos...`);
-                                
-                                const fileArray = Array.from(files) as File[];
-                                let successCount = 0;
-                                
-                                for (let i = 0; i < fileArray.length; i++) {
-                                  const file = fileArray[i];
-                                  let tempUrl = '';
-                                  try {
-                                    tempUrl = URL.createObjectURL(file);
-                                    if (editingItem) {
-                                      setEditingItem(prev => prev ? {...prev, images: [...(prev.images || []), tempUrl]} : null);
-                                    } else {
-                                      setNewItem(prev => ({...prev, images: [...prev.images, tempUrl]}));
-                                    }
-
-                                    setMessage(`Upload photo ${i + 1}/${fileArray.length}...`);
-                                    const url = await storageService.uploadImage(file, 'portfolio', (progress) => {
-                                      setUploadProgress(Math.round(progress));
-                                    });
-                                    
-                                    if (editingItem) {
-                                      setEditingItem(prev => {
-                                        if (!prev) return null;
-                                        const filtered = (prev.images || []).filter(img => img !== tempUrl);
-                                        return {...prev, images: [...filtered, url]};
-                                      });
-                                    } else {
-                                      setNewItem(prev => {
-                                        const filtered = prev.images.filter(img => img !== tempUrl);
-                                        return {...prev, images: [...filtered, url]};
-                                      });
-                                    }
-                                    successCount++;
-                                  } catch (uploadError: any) {
-                                    console.error('Error uploading individual gallery file:', uploadError);
-                                    setMessage(`Erreur photo ${i + 1}: ${uploadError.message}`);
-                                    
-                                    // Clean up blob URL on failure so it doesn't block the "Publish" button
-                                    if (editingItem) {
-                                      setEditingItem(prev => {
-                                        if (!prev) return null;
-                                        return {...prev, images: (prev.images || []).filter(img => img !== tempUrl)};
-                                      });
-                                    } else {
-                                      setNewItem(prev => ({
-                                        ...prev, 
-                                        images: prev.images.filter(img => img !== tempUrl)
-                                      }));
-                                    }
-                                  }
-                                }
-                                
-                                if (successCount > 0) {
-                                  setMessage(`${successCount} photos ajoutées avec succès`);
-                                }
-                                setIsUploading(false);
-                                setUploadProgress(0);
-                                setTimeout(() => setMessage(''), 3000);
-                              }
-                            }}
-                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                            id="gallery-upload"
-                          />
-                          <div className="w-full h-full rounded-xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-slate-400 hover:border-brand-primary hover:text-brand-primary hover:bg-brand-primary/5 transition-all">
-                            {isUploading ? <Loader2 className="animate-spin" size={24} /> : <Plus size={24} />}
-                            <span className="text-[10px] font-bold mt-1">Ajouter</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <button 
-                      type="submit" 
-                      disabled={isUploading || (editingItem ? (editingItem.imageUrl.startsWith('blob:') || editingItem.images?.some(img => img.startsWith('blob:'))) : (newItem.imageUrl.startsWith('blob:') || newItem.images.some(img => img.startsWith('blob:'))))} 
-                      className={`btn-primary w-full py-3 ${isUploading || (editingItem ? (editingItem.imageUrl.startsWith('blob:') || editingItem.images?.some(img => img.startsWith('blob:'))) : (newItem.imageUrl.startsWith('blob:') || newItem.images.some(img => img.startsWith('blob:')))) ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    >
-                      {(isUploading || (editingItem ? (editingItem.imageUrl.startsWith('blob:') || editingItem.images?.some(img => img.startsWith('blob:'))) : (newItem.imageUrl.startsWith('blob:') || newItem.images.some(img => img.startsWith('blob:'))))) ? <Loader2 className="animate-spin" size={18} /> : (editingItem ? <Save size={18} /> : <Plus size={18} />)}
-                      {editingItem ? 'Enregistrer' : 'Publier'}
-                    </button>
-                  </form>
-                </div>
-
-                {/* Add Testimonial */}
-                <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
-                  <div className="flex items-center gap-3 mb-6">
-                    <MessageSquare className="text-brand-primary" size={24} />
-                    <h2 className="text-xl font-bold">Ajouter Témoignage</h2>
-                  </div>
-                  <form onSubmit={handleAddTestimonial} className="space-y-4">
-                    <input 
-                      type="text" 
-                      value={newTestimonial.name}
-                      onChange={(e) => setNewTestimonial({...newTestimonial, name: e.target.value})}
-                      placeholder="Nom du client"
-                      className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-100 outline-none"
-                    />
-                    <input 
-                      type="text" 
-                      value={newTestimonial.role}
-                      onChange={(e) => setNewTestimonial({...newTestimonial, role: e.target.value})}
-                      placeholder="Rôle / Entreprise"
-                      className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-100 outline-none"
-                    />
-                    <textarea 
-                      value={newTestimonial.comment}
-                      onChange={(e) => setNewTestimonial({...newTestimonial, comment: e.target.value})}
-                      placeholder="Témoignage"
-                      className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-100 outline-none h-24"
-                    />
-                    <div className="space-y-3">
-                      <label className="text-sm font-bold text-slate-700 flex items-center gap-2">
-                        <ImageIcon size={16} className="text-brand-primary" />
-                        Photo du client
-                      </label>
-                      <div className="relative group">
-                        <input 
-                          type="file" 
-                          accept="image/*"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) handleFileUpload(file, 'testimonials', (url) => setNewTestimonial({...newTestimonial, avatarUrl: url}));
-                          }}
-                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                          id="avatar-upload"
-                        />
-                        <div className={`w-24 h-24 rounded-2xl border-2 border-dashed flex items-center justify-center overflow-hidden transition-all mx-auto ${
-                          newTestimonial.avatarUrl ? 'border-brand-primary/20 bg-brand-primary/5' : 'border-slate-200 bg-slate-50 hover:border-brand-primary/50'
-                        }`}>
-                          {newTestimonial.avatarUrl ? (
-                            <div className="relative w-full h-full">
-                              <img src={newTestimonial.avatarUrl} alt="Avatar Preview" className="w-full h-full object-cover" />
-                              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                <Upload size={20} className="text-white" />
-                              </div>
-                            </div>
-                          ) : (
-                            <div className="flex flex-col items-center text-slate-400">
-                              {isUploading ? <Loader2 className="animate-spin" size={20} /> : <Upload size={20} />}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    <button type="submit" disabled={isUploading} className={`btn-primary w-full py-3 ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}>
-                      <Plus size={18} />
-                      Enregistrer
-                    </button>
-                  </form>
-                </div>
+                {editingItem && (
+                  <button onClick={() => setEditingItem(null)} className="p-2 hover:bg-slate-100 rounded-full text-slate-400">
+                    <X size={20} />
+                  </button>
+                )}
               </div>
-
-              <div className="lg:col-span-2 space-y-8">
-                {/* List Portfolio */}
-                <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
-                  <div className="p-8 border-b border-slate-100 flex items-center justify-between">
-                    <div>
-                      <h2 className="text-xl font-bold">Projets Actuels</h2>
-                      <p className="text-xs text-slate-500 mt-1">Gérez vos réalisations visibles sur le site.</p>
-                    </div>
-                    <div className="bg-brand-secondary/50 px-3 py-1 rounded-full text-[10px] font-bold text-brand-primary uppercase tracking-tighter">
-                      {items.length} projet{items.length !== 1 ? 's' : ''}
-                    </div>
-                  </div>
-                  <div className="divide-y divide-slate-50">
-                    {items.length === 0 && <div className="p-12 text-center text-slate-400 italic">Aucun projet trouvé</div>}
-                    {getPaginatedItems(items, portfolioPage).map((item) => (
-                      <div key={item.id} className="p-6 flex items-center justify-between group">
-                        <div className="flex items-center gap-4">
-                          <img src={item.imageUrl} alt="" className="w-16 h-16 rounded-xl object-cover" />
-                          <div>
-                            <h4 className="font-bold text-slate-900">{item.title}</h4>
-                            <span className="text-xs uppercase tracking-widest text-slate-500">{item.category}</span>
+              <form onSubmit={editingItem ? handleUpdateItem : handleAddItem} className="space-y-4">
+                <input 
+                  type="text" 
+                  value={editingItem ? editingItem.title : newItem.title}
+                  onChange={(e) => editingItem 
+                    ? setEditingItem({...editingItem, title: e.target.value})
+                    : setNewItem({...newItem, title: e.target.value})
+                  }
+                  placeholder="Titre du projet"
+                  className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-100 outline-none"
+                />
+                <input 
+                  type="text" 
+                  value={editingItem ? editingItem.category : newItem.category}
+                  onChange={(e) => editingItem 
+                    ? setEditingItem({...editingItem, category: e.target.value})
+                    : setNewItem({...newItem, category: e.target.value})
+                  }
+                  placeholder="Catégorie (ex: Design)"
+                  className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-100 outline-none"
+                />
+                <textarea 
+                  value={editingItem ? editingItem.description : newItem.description}
+                  onChange={(e) => editingItem 
+                    ? setEditingItem({...editingItem, description: e.target.value})
+                    : setNewItem({...newItem, description: e.target.value})
+                  }
+                  placeholder="Description du projet"
+                  rows={3}
+                  className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-100 outline-none resize-none"
+                />
+                  <div className="space-y-3">
+                    <label className="text-sm font-bold text-slate-700 flex items-center gap-2">
+                      <ImageIcon size={16} className="text-brand-primary" />
+                      Photo du projet
+                    </label>
+                    <input 
+                      type="text" 
+                      value={editingItem ? editingItem.imageUrl : newItem.imageUrl}
+                      onChange={(e) => {
+                        const val = getDirectDriveLink(e.target.value);
+                        if (editingItem) {
+                          setEditingItem({...editingItem, imageUrl: val});
+                        } else {
+                          setNewItem({...newItem, imageUrl: val});
+                        }
+                      }}
+                      placeholder="Lien Drive ou URL"
+                      className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-100 outline-none text-xs"
+                    />
+                    {isUploading && uploadProgress > 0 && (
+                      <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden mb-2">
+                        <motion.div 
+                          initial={{ width: 0 }}
+                          animate={{ width: `${uploadProgress}%` }}
+                          className="h-full bg-brand-primary"
+                        />
+                      </div>
+                    )}
+                    <div className="relative">
+                    <input 
+                      type="file" 
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const callback = (url: string) => editingItem 
+                            ? setEditingItem({...editingItem, imageUrl: url})
+                            : setNewItem({...newItem, imageUrl: url});
+                          handleFileUpload(file, 'portfolio', callback);
+                        }
+                      }}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                      id="portfolio-upload"
+                    />
+                    <div className={`w-full aspect-video rounded-2xl border-2 border-dashed transition-all flex flex-col items-center justify-center p-6 text-center ${
+                      (editingItem ? editingItem.imageUrl : newItem.imageUrl) 
+                        ? 'border-brand-primary/20 bg-brand-primary/5' 
+                        : 'border-slate-200 bg-slate-50 hover:border-brand-primary/50'
+                    }`}>
+                      {(editingItem ? editingItem.imageUrl : newItem.imageUrl) ? (
+                        <div className="relative w-full h-full">
+                          <img 
+                            src={editingItem ? editingItem.imageUrl : newItem.imageUrl} 
+                            alt="Preview" 
+                            className="w-full h-full object-cover rounded-xl shadow-sm" 
+                          />
+                          <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center rounded-xl">
+                            <p className="text-white text-sm font-bold flex items-center gap-2">
+                              <Upload size={18} />
+                              Changer la photo
+                            </p>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <button 
-                            onClick={() => {
-                              setEditingItem(item);
-                              window.scrollTo({ top: 0, behavior: 'smooth' });
-                            }}
-                            className="p-3 text-slate-300 hover:text-brand-primary hover:bg-brand-primary/5 rounded-xl transition-all"
-                          >
-                            <Edit2 size={20} />
-                          </button>
-                          <button 
-                            onClick={() => handleDeleteItem(item)}
-                            className="p-3 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
-                          >
-                            <Trash2 size={20} />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
+                      ) : (
+                        <>
+                          <div className="w-12 h-12 bg-white rounded-2xl shadow-sm flex items-center justify-center text-brand-primary mb-3">
+                            {isUploading ? <Loader2 className="animate-spin" size={24} /> : <Upload size={24} />}
+                          </div>
+                          <p className="text-sm font-bold text-slate-900">Importer une photo</p>
+                        </>
+                      )}
+                    </div>
                   </div>
-                  <Pagination 
-                    current={portfolioPage} 
-                    total={totalPortfolioPages} 
-                    onChange={setPortfolioPage} 
-                  />
                 </div>
 
-                {/* List Testimonials */}
-                <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
-                  <div className="p-8 border-b border-slate-100">
-                    <h2 className="text-xl font-bold">Témoignages Actuels</h2>
-                  </div>
-                  <div className="divide-y divide-slate-50">
-                    {testimonials.length === 0 && <div className="p-12 text-center text-slate-400 italic">Aucun témoignage trouvé</div>}
-                    {getPaginatedItems(testimonials, testimonialsPage).map((t) => (
-                      <div key={t.id} className="p-6 flex items-center justify-between group">
-                        <div className="flex items-center gap-4">
-                          <img src={t.avatarUrl} alt="" className="w-12 h-12 rounded-full object-cover" />
-                          <div>
-                            <h4 className="font-bold text-slate-900">{t.name}</h4>
-                            <p className="text-sm text-slate-500 line-clamp-1">{t.comment}</p>
-                          </div>
-                        </div>
+                <div className="space-y-3 pt-4 border-t border-slate-100">
+                  <label className="text-sm font-bold text-slate-700 flex items-center gap-2">
+                    <Plus size={16} className="text-brand-primary" />
+                    Galerie photos
+                  </label>
+                  <div className="grid grid-cols-3 gap-3">
+                    {(editingItem ? editingItem.images : newItem.images)?.map((url, idx) => (
+                      <motion.div 
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        key={idx} 
+                        className="relative aspect-square rounded-xl overflow-hidden border border-slate-200 group shadow-sm"
+                      >
+                        <img src={url} alt="" className="w-full h-full object-cover transition-transform group-hover:scale-110" />
                         <button 
-                          onClick={() => {
-                            handleDeleteTestimonial(t);
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (editingItem) {
+                              const newImages = [...(editingItem.images || [])];
+                              newImages.splice(idx, 1);
+                              setEditingItem({...editingItem, images: newImages});
+                            } else {
+                              const newImages = [...newItem.images];
+                              newImages.splice(idx, 1);
+                              setNewItem({...newItem, images: newImages});
+                            }
                           }}
-                          className="p-3 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                          className="absolute inset-0 bg-red-500/90 text-white flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
                         >
                           <Trash2 size={20} />
+                          <span className="text-[10px] font-bold mt-1">Supprimer</span>
                         </button>
-                      </div>
+                      </motion.div>
                     ))}
-                  </div>
-                  <Pagination 
-                    current={testimonialsPage} 
-                    total={totalTestimonialPages} 
-                    onChange={setTestimonialsPage} 
-                  />
-                </div>
-              </div>
-            </motion.div>
-          ) : (
-            <motion.div 
-              key="admins"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="grid lg:grid-cols-3 gap-8"
-            >
-              <div className="lg:col-span-1">
-                <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
-                  <div className="flex items-center gap-3 mb-6">
-                    <Shield className="text-brand-primary" size={24} />
-                    <h2 className="text-xl font-bold">Ajouter un Admin</h2>
-                  </div>
-                  <p className="text-sm text-slate-500 mb-6 font-medium bg-slate-50 p-4 rounded-2xl border border-slate-100 italic">
-                    Note: Pour ajouter un admin avec un numéro de téléphone, activez les fournisseurs correspondants dans la console Firebase et renseignez ici l'UID de l'utilisateur.
-                  </p>
-                  <form onSubmit={handleAddAdmin} className="space-y-4">
-                    <div className="space-y-2">
-                      <label className="text-xs font-bold text-slate-700 uppercase tracking-widest pl-1">ID Utilisateur (UID)</label>
+                    
+                    <div className="relative aspect-square">
                       <input 
-                        type="text" 
-                        value={newAdmin.userId}
-                        onChange={(e) => setNewAdmin({...newAdmin, userId: e.target.value})}
-                        placeholder="UID de l'utilisateur"
-                        className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-100 outline-none focus:ring-2 focus:ring-brand-primary/20 transition-all font-mono text-sm"
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                       <label className="text-xs font-bold text-slate-700 uppercase tracking-widest pl-1">Email / Identifiant</label>
-                      <input 
-                        type="text" 
-                        value={newAdmin.email}
-                        onChange={(e) => setNewAdmin({...newAdmin, email: e.target.value})}
-                        placeholder="ex: +243XXXXXXXXX"
-                        className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-100 outline-none focus:ring-2 focus:ring-brand-primary/20 transition-all"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-xs font-bold text-slate-700 uppercase tracking-widest pl-1">Rôle</label>
-                      <select 
-                        value={newAdmin.role}
-                        onChange={(e) => setNewAdmin({...newAdmin, role: e.target.value})}
-                        className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-100 outline-none focus:ring-2 focus:ring-brand-primary/20 transition-all"
-                      >
-                        <option value="Admin">Administrateur</option>
-                        <option value="Manager">Gestionnaire</option>
-                      </select>
-                    </div>
-                    <button type="submit" className="btn-primary w-full py-4 mt-4 shadow-lg shadow-brand-primary/20">
-                      <Plus size={18} />
-                      Accorder l'accès
-                    </button>
-                  </form>
-                </div>
-              </div>
+                        type="file" 
+                        accept="image/*"
+                        multiple
+                        onChange={async (e) => {
+                          const files = e.target.files;
+                          if (files && files.length > 0) {
+                            if (!auth.currentUser) {
+                              setMessage("Erreur: Authentification Firebase requise.");
+                              return;
+                            }
 
-              <div className="lg:col-span-2">
-                <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
-                  <div className="p-8 border-b border-slate-100">
-                    <h2 className="text-xl font-bold">Admins Autorisés</h2>
-                  </div>
-                  <div className="divide-y divide-slate-50">
-                    {adminList.length === 0 && <div className="p-12 text-center text-slate-400 italic">Aucun admin ajouté dans la base de données.</div>}
-                    {adminList.map((admin) => (
-                      <div key={admin.id} className="p-6 flex items-center justify-between group hover:bg-slate-50/50 transition-colors">
-                        <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 bg-brand-primary/10 rounded-full flex items-center justify-center text-brand-primary">
-                            <Users size={20} />
-                          </div>
-                          <div>
-                            <h4 className="font-bold text-slate-900">{admin.email || admin.id}</h4>
-                            <div className="flex items-center gap-2 mt-1">
-                              <span className="text-[10px] font-bold bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full uppercase tracking-widest">{admin.role}</span>
-                              <span className="text-[10px] text-slate-400 font-mono">{admin.id}</span>
-                            </div>
-                          </div>
-                        </div>
-                        {user?.email !== admin.email && (
-                          <button 
-                            onClick={() => handleDeleteAdmin(admin.id)}
-                            className="p-3 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
-                          >
-                            <Trash2 size={20} />
-                          </button>
-                        )}
+                            setIsUploading(true);
+                            setUploadProgress(0);
+                            setMessage(`Préparation de ${files.length} photos...`);
+                            
+                            const fileArray = Array.from(files) as File[];
+                            let successCount = 0;
+                            
+                            for (let i = 0; i < fileArray.length; i++) {
+                              const file = fileArray[i];
+                              let tempUrl = '';
+                              try {
+                                tempUrl = URL.createObjectURL(file);
+                                if (editingItem) {
+                                  setEditingItem(prev => prev ? {...prev, images: [...(prev.images || []), tempUrl]} : null);
+                                } else {
+                                  setNewItem(prev => ({...prev, images: [...prev.images, tempUrl]}));
+                                }
+
+                                setMessage(`Upload photo ${i + 1}/${fileArray.length}...`);
+                                const url = await storageService.uploadImage(file, 'portfolio', (progress) => {
+                                  setUploadProgress(Math.round(progress));
+                                });
+                                
+                                if (editingItem) {
+                                  setEditingItem(prev => {
+                                    if (!prev) return null;
+                                    const filtered = (prev.images || []).filter(img => img !== tempUrl);
+                                    return {...prev, images: [...filtered, url]};
+                                  });
+                                } else {
+                                  setNewItem(prev => {
+                                    const filtered = prev.images.filter(img => img !== tempUrl);
+                                    return {...prev, images: [...filtered, url]};
+                                  });
+                                }
+                                successCount++;
+                              } catch (uploadError: any) {
+                                console.error('Error uploading gallery file:', uploadError);
+                                setMessage(`Erreur photo ${i + 1}: ${uploadError.message}`);
+                                
+                                if (editingItem) {
+                                  setEditingItem(prev => {
+                                    if (!prev) return null;
+                                    return {...prev, images: (prev.images || []).filter(img => img !== tempUrl)};
+                                  });
+                                } else {
+                                  setNewItem(prev => ({
+                                    ...prev, 
+                                    images: prev.images.filter(img => img !== tempUrl)
+                                  }));
+                                }
+                              }
+                            }
+                            
+                            if (successCount > 0) {
+                              setMessage(`${successCount} photos ajoutées`);
+                            }
+                            setIsUploading(false);
+                            setUploadProgress(0);
+                            setTimeout(() => setMessage(''), 3000);
+                          }
+                        }}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                        id="gallery-upload"
+                      />
+                      <div className="w-full h-full rounded-xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-slate-400 hover:border-brand-primary hover:text-brand-primary hover:bg-brand-primary/5 transition-all">
+                        {isUploading ? <Loader2 className="animate-spin" size={24} /> : <Plus size={24} />}
+                        <span className="text-[10px] font-bold mt-1">Galarie</span>
                       </div>
-                    ))}
-                    {/* Fixed super admin indicator */}
-                    <div className="p-6 flex items-center justify-between bg-brand-primary/5">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-brand-primary text-white rounded-full flex items-center justify-center">
-                          <Shield size={20} />
-                        </div>
-                        <div>
-                          <h4 className="font-bold text-slate-900">intechdigital0@gmail.com</h4>
-                          <span className="text-[10px] font-bold bg-brand-primary/20 text-brand-primary px-2 py-0.5 rounded-full uppercase tracking-widest">Super Admin</span>
-                        </div>
-                      </div>
-                      <div className="text-[10px] font-bold text-brand-primary uppercase tracking-widest px-3 py-1 bg-white rounded-lg border border-brand-primary/10">Inamovible</div>
                     </div>
                   </div>
                 </div>
+
+                <button 
+                  type="submit" 
+                  disabled={isUploading || (editingItem ? (editingItem.imageUrl.startsWith('blob:') || editingItem.images?.some(img => img.startsWith('blob:'))) : (newItem.imageUrl.startsWith('blob:') || newItem.images.some(img => img.startsWith('blob:'))))} 
+                  className={`btn-primary w-full py-3 ${isUploading || (editingItem ? (editingItem.imageUrl.startsWith('blob:') || editingItem.images?.some(img => img.startsWith('blob:'))) : (newItem.imageUrl.startsWith('blob:') || newItem.images.some(img => img.startsWith('blob:')))) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                  {(isUploading || (editingItem ? (editingItem.imageUrl.startsWith('blob:') || editingItem.images?.some(img => img.startsWith('blob:'))) : (newItem.imageUrl.startsWith('blob:') || newItem.images.some(img => img.startsWith('blob:'))))) ? <Loader2 className="animate-spin" size={18} /> : (editingItem ? <Save size={18} /> : <Plus size={18} />)}
+                  {editingItem ? 'Enregistrer' : 'Publier le projet'}
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <div className="lg:col-span-2">
+            {/* List Portfolio */}
+            <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+              <div className="p-8 border-b border-slate-100 flex items-center justify-between">
+                <div>
+                  <h2 className="text-xl font-bold">Projets du Portfolio</h2>
+                  <p className="text-xs text-slate-500 mt-1">Liste des réalisations affichées sur le site.</p>
+                </div>
+                <div className="bg-brand-secondary/20 px-3 py-1 rounded-full text-[10px] font-bold text-brand-primary uppercase tracking-tighter">
+                  {items.length} projet{items.length !== 1 ? 's' : ''}
+                </div>
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+              <div className="divide-y divide-slate-50">
+                {items.length === 0 && <div className="p-12 text-center text-slate-400 italic">Aucun projet trouvé</div>}
+                {getPaginatedItems(items, portfolioPage).map((item) => (
+                  <div key={item.id} className="p-6 flex items-center justify-between group">
+                    <div className="flex items-center gap-4">
+                      <img src={item.imageUrl} alt="" className="w-16 h-16 rounded-xl object-cover shadow-sm" />
+                      <div>
+                        <h4 className="font-bold text-slate-900">{item.title}</h4>
+                        <span className="text-xs uppercase tracking-widest text-slate-500 font-medium">{item.category}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button 
+                        onClick={() => {
+                          setEditingItem(item);
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
+                        className="p-3 text-slate-300 hover:text-brand-primary hover:bg-brand-primary/5 rounded-xl transition-all"
+                      >
+                        <Edit2 size={20} />
+                      </button>
+                      <button 
+                        onClick={() => handleDeleteItem(item)}
+                        className="p-3 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                      >
+                        <Trash2 size={20} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <Pagination 
+                current={portfolioPage} 
+                total={totalPortfolioPages} 
+                onChange={setPortfolioPage} 
+              />
+            </div>
+          </div>
+        </motion.div>
       </div>
 
       {/* Deletion Confirmation Modal */}

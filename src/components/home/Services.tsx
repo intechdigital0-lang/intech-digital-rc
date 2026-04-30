@@ -6,9 +6,9 @@ import { ArrowRight } from 'lucide-react';
 
 const Services = () => {
   return (
-    <section id="services" className="py-16 md:py-24 bg-slate-50">
+    <section id="services" className="py-10 md:py-24 bg-slate-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-3xl mx-auto mb-10 md:mb-16 px-4">
+        <div className="text-center max-w-3xl mx-auto mb-8 md:mb-16 px-4">
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}

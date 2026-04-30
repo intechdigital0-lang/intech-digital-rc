@@ -34,18 +34,18 @@ const Hero = () => {
       </svg>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5 }}
-            className="text-center lg:text-left"
+            className="text-center lg:text-left pt-6 lg:pt-0"
           >
             <motion.div
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.5 }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-secondary text-white border border-brand-primary/20 text-sm font-semibold mb-6 mx-auto lg:mx-0"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-secondary text-white border border-brand-primary/20 text-xs md:text-sm font-semibold mb-6 mx-auto lg:mx-0"
             >
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-primary opacity-75"></span>
@@ -58,7 +58,7 @@ const Hero = () => {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.3, ease: [0.21, 0.45, 0.32, 0.9] }}
-              className="text-3xl md:text-5xl lg:text-6xl font-display font-bold text-slate-900 leading-tight mb-6 md:mb-8"
+              className="text-3xl md:text-5xl lg:text-6xl font-display font-bold text-slate-900 leading-tight mb-5 md:mb-8"
             >
               Faites décoller <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-secondary to-brand-primary">votre activité</span> maintenant
             </motion.h1>
@@ -76,20 +76,20 @@ const Hero = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.6 }}
-              className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
+              className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center lg:justify-start"
             >
               <a
                 href={getWhatsAppLink('Bonjour Intech Digital DRC, je suis prêt à commander maintenant.')}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="btn-primary text-lg"
+                className="btn-primary text-base md:text-lg"
               >
                 Commander maintenant
-                <ArrowRight size={20} />
+                <ArrowRight size={18} className="md:w-5 md:h-5" />
               </a>
               <a
                 href="#services"
-                className="btn-secondary text-lg"
+                className="btn-secondary text-base md:text-lg"
               >
                 Explorer nos services
               </a>
@@ -99,7 +99,7 @@ const Hero = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.8 }}
-              className="mt-12 flex flex-col sm:flex-row items-center gap-6 justify-center lg:justify-start"
+              className="mt-8 md:mt-12 flex flex-col sm:flex-row items-center gap-4 md:gap-6 justify-center lg:justify-start"
             >
               <div className="flex -space-x-3">
                 {[

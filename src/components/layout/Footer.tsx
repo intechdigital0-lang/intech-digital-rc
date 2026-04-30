@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { WHATSAPP_NUMBER, EMAIL, ADDRESS, SERVICES } from '../../constants';
+import { WHATSAPP_NUMBER, EMAIL, ADDRESS, SERVICES, getWhatsAppLink } from '../../constants';
 import { MessageCircle, Mail, MapPin, ExternalLink, Lock } from 'lucide-react';
 
 const Footer = () => {
@@ -33,19 +33,26 @@ const Footer = () => {
           <div>
             <h4 className="text-lg font-bold mb-6">Contactez-nous</h4>
             <ul className="space-y-4">
-              <li className="flex flex-col items-center gap-2">
-                <MapPin className="text-brand-primary shrink-0" size={20} />
+              <li className="flex flex-col items-center gap-2 group">
+                <MapPin className="text-brand-primary shrink-0 transition-transform group-hover:scale-110" size={20} />
                 <span className="text-slate-400">{ADDRESS}</span>
               </li>
-              <li className="flex flex-col items-center gap-2">
-                <Mail className="text-brand-primary shrink-0" size={20} />
-                <a href={`mailto:${EMAIL}`} className="text-slate-400 hover:text-white transition-colors">
+              <li className="flex flex-col items-center gap-2 group">
+                <Mail className="text-brand-primary shrink-0 transition-transform group-hover:scale-110" size={20} />
+                <a href={`mailto:${EMAIL}`} className="text-slate-400 hover:text-brand-primary transition-colors">
                   {EMAIL}
                 </a>
               </li>
-              <li className="flex flex-col items-center gap-2">
-                <MessageCircle className="text-brand-primary shrink-0" size={20} />
-                <span className="text-slate-400">{WHATSAPP_NUMBER}</span>
+              <li className="flex flex-col items-center gap-2 group">
+                <MessageCircle className="text-brand-primary shrink-0 transition-transform group-hover:scale-110" size={20} />
+                <a 
+                  href={getWhatsAppLink('Bonjour Intech Digital DRC, je souhaiterais prendre contact avec vous.')} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-slate-400 hover:text-brand-primary transition-colors"
+                >
+                  {WHATSAPP_NUMBER}
+                </a>
               </li>
             </ul>
           </div>

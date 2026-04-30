@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { motion } from 'motion/react';
-import { MessageSquare, Mail, MapPin, Send } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { MessageSquare, Mail, MapPin, Send, AlertCircle, X, CheckCircle } from 'lucide-react';
 import { getWhatsAppLink, WHATSAPP_NUMBER, EMAIL, ADDRESS } from '../../constants';
 
 const Contact = () => {
@@ -12,6 +12,7 @@ const Contact = () => {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -81,13 +82,76 @@ const Contact = () => {
     
     if (!validateForm()) return;
     
+    setShowConfirm(true);
+  };
+
+  const confirmSubmit = () => {
     const formattedMessage = `*Nouveau message du formulaire*\n\n*Nom:* ${formData.name}\n*WhatsApp:* ${formData.whatsapp || 'Non spécifié'}\n*Email:* ${formData.email}\n*Message:* ${formData.message}`;
     
     window.open(getWhatsAppLink(formattedMessage), '_blank');
+    setShowConfirm(false);
   };
 
   return (
-    <section id="contact" className="py-16 md:py-24 bg-slate-50">
+    <section id="contact" className="py-10 md:py-24 bg-slate-50">
+      <AnimatePresence>
+        {showConfirm && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowConfirm(false)}
+              className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="relative w-full max-w-md bg-white rounded-[2.5rem] p-8 shadow-2xl overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 p-4">
+                <button 
+                  onClick={() => setShowConfirm(false)}
+                  className="p-2 hover:bg-slate-50 rounded-full transition-colors text-slate-400 hover:text-slate-600"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+              
+              <div className="flex flex-col items-center text-center space-y-6">
+                <div className="w-20 h-20 bg-brand-primary/10 rounded-full flex items-center justify-center text-brand-primary animate-pulse">
+                  <AlertCircle size={40} />
+                </div>
+                
+                <div className="space-y-2">
+                  <h3 className="text-2xl font-bold text-slate-900">Confirmation</h3>
+                  <p className="text-slate-600">
+                    Êtes-vous sûr de vouloir envoyer ce message ? Vous serez redirigé vers WhatsApp pour finaliser l'envoi.
+                  </p>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-3 w-full pt-4">
+                  <button
+                    onClick={() => setShowConfirm(false)}
+                    className="flex-1 px-6 py-4 rounded-2xl bg-slate-100 text-slate-600 font-bold hover:bg-slate-200 transition-colors"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    onClick={confirmSubmit}
+                    className="flex-1 px-6 py-4 rounded-2xl bg-brand-primary text-white font-bold hover:shadow-lg hover:shadow-brand-primary/20 transition-all flex items-center justify-center gap-2"
+                  >
+                    <CheckCircle size={20} />
+                    Oui, envoyer
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-brand-primary rounded-[2rem] md:rounded-[3rem] overflow-hidden shadow-2xl relative">
           {/* Patterns */}
