@@ -219,21 +219,28 @@ const Portfolio = () => {
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     whileHover={{ 
-                      scale: 1.03,
-                      y: -8,
-                      boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)"
+                      scale: 1.02,
+                      y: -12,
+                      boxShadow: "0 40px 80px -15px rgba(0, 0, 0, 0.35)"
                     }}
                     exit={{ opacity: 0, scale: 0.9 }}
                     transition={{ 
                       layout: { duration: 0.3 },
-                      scale: { type: "spring", stiffness: 400, damping: 25 },
-                      y: { type: "spring", stiffness: 400, damping: 25 }
+                      scale: { type: "spring", stiffness: 300, damping: 20 },
+                      y: { type: "spring", stiffness: 300, damping: 20 }
                     }}
                     onClick={() => openGallery(item)}
                     role="button"
                     aria-label={`Voir les détails du projet ${item.title}`}
-                    className="group relative rounded-3xl overflow-hidden bg-white shadow-lg h-[400px] cursor-pointer"
+                    className="group relative rounded-[2.5rem] overflow-hidden bg-white shadow-xl h-[400px] cursor-pointer"
                   >
+                  {/* Subtle shine effect on hover */}
+                  <div className="absolute inset-0 z-10 pointer-events-none overflow-hidden">
+                    <div className="absolute -inset-full bg-gradient-to-tr from-transparent via-white/10 to-transparent rotate-45 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-in-out" />
+                  </div>
+
+                  {/* Inner border glow on hover */}
+                  <div className="absolute inset-0 rounded-[2.5rem] border-2 border-white/0 group-hover:border-white/20 transition-colors duration-500 z-20 pointer-events-none" />
                   {/* Loading Skeleton */}
                   {!loadedImages[item.id] && (
                     <div className="absolute inset-0 bg-slate-100 flex flex-col p-8 overflow-hidden">

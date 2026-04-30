@@ -111,7 +111,7 @@ const Navbar = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setIsOpen(false)}
-            className="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-40 md:hidden"
+            className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 md:hidden"
           />
         )}
       </AnimatePresence>
@@ -120,10 +120,15 @@ const Navbar = () => {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ x: '100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '100%' }}
-            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+            initial={{ x: '100%', opacity: 0.9 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: '100%', opacity: 0.9 }}
+            transition={{ 
+              type: "spring", 
+              damping: 30, 
+              stiffness: 300,
+              mass: 0.8
+            }}
             className="fixed inset-y-0 right-0 w-[85%] max-w-sm bg-white z-50 md:hidden shadow-2xl flex flex-col"
           >
             <div className="p-6 flex justify-between items-center border-b border-slate-50">
@@ -145,8 +150,18 @@ const Navbar = () => {
               animate="open"
               exit="closed"
               variants={{
-                open: { transition: { staggerChildren: 0.08, delayChildren: 0.2 } },
-                closed: { transition: { staggerChildren: 0.05, staggerDirection: -1 } }
+                open: { 
+                  transition: { 
+                    staggerChildren: 0.1, 
+                    delayChildren: 0.1 
+                  } 
+                },
+                closed: { 
+                  transition: { 
+                    staggerChildren: 0.05, 
+                    staggerDirection: -1 
+                  } 
+                }
               }}
             >
               {navLinks.map((link) => (
@@ -155,8 +170,25 @@ const Navbar = () => {
                   href={link.href}
                   onClick={() => setIsOpen(false)}
                   variants={{
-                    open: { opacity: 1, x: 0, filter: "blur(0px)" },
-                    closed: { opacity: 0, x: 20, filter: "blur(4px)" }
+                    open: { 
+                      opacity: 1, 
+                      x: 0, 
+                      y: 0,
+                      scale: 1,
+                      filter: "blur(0px)" 
+                    },
+                    closed: { 
+                      opacity: 0, 
+                      x: 30, 
+                      y: 10,
+                      scale: 0.95,
+                      filter: "blur(8px)" 
+                    }
+                  }}
+                  transition={{
+                    type: "spring",
+                    stiffness: 260,
+                    damping: 20
                   }}
                   className="flex items-center gap-5 px-5 py-5 text-xl font-bold text-slate-800 hover:text-brand-primary hover:bg-slate-50 rounded-[1.5rem] transition-all active:scale-95 group"
                 >
@@ -170,9 +202,10 @@ const Navbar = () => {
             
             <div className="p-8 border-t border-slate-50 bg-slate-50/50">
               <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5 }}
+                initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                transition={{ delay: 0.4 }}
               >
                 <motion.a
                   href={getWhatsAppLink('Bonjour Intech Digital DRC, je souhaiterais obtenir un devis.')}

@@ -75,11 +75,11 @@ const WhyUs = () => {
             viewport={{ once: true }}
             className="relative"
           >
-            <div className="aspect-square bg-brand-primary/5 rounded-[4rem] absolute inset-0 transform -rotate-6" />
+            <div className="aspect-square bg-brand-primary/5 rounded-2xl absolute inset-0 transform -rotate-6" />
             <img
               src={whyUsImg}
               alt="Collaboration Intech Digital DRC"
-              className="rounded-[4rem] relative z-10 w-full h-full object-cover shadow-2xl"
+              className="rounded-2xl relative z-10 w-full h-full object-cover shadow-2xl"
               referrerPolicy="no-referrer"
             />
           </motion.div>
