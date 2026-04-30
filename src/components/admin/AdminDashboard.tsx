@@ -155,6 +155,16 @@ ACTIONS REQUISES :
 
   const [uploadProgress, setUploadProgress] = useState(0);
 
+  const getDirectDriveLink = (url: string) => {
+    if (url.includes('drive.google.com')) {
+      const match = url.match(/\/d\/(.+?)\/(?:view|edit|usp=)/) || url.match(/id=(.+?)(?:&|$)/);
+      if (match && match[1]) {
+        return `https://lh3.googleusercontent.com/d/${match[1]}`;
+      }
+    }
+    return url;
+  };
+
   const handleFileUpload = async (file: File, folder: string, callback: (url: string) => void) => {
     if (!file) return;
     
@@ -584,6 +594,13 @@ ACTIONS REQUISES :
                   <div className="space-y-8">
                     <div className="space-y-3">
                       <label className="text-sm font-bold text-slate-700">Image de couverture (Hero)</label>
+                      <input 
+                        type="text"
+                        value={heroUrl}
+                        onChange={(e) => setHeroUrl(getDirectDriveLink(e.target.value))}
+                        placeholder="Lien direct ou Drive..."
+                        className="w-full px-4 py-2 rounded-xl bg-slate-50 border border-slate-100 outline-none text-xs"
+                      />
                       {isUploading && uploadProgress > 0 && heroUrl.startsWith('blob:') && (
                         <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
                           <motion.div 
@@ -636,6 +653,13 @@ ACTIONS REQUISES :
                     
                     <div className="space-y-3 pt-6 border-t border-slate-100">
                       <label className="text-sm font-bold text-slate-700">Image "Pourquoi nous"</label>
+                      <input 
+                        type="text"
+                        value={whyUsUrl}
+                        onChange={(e) => setWhyUsUrl(getDirectDriveLink(e.target.value))}
+                        placeholder="Lien direct ou Drive..."
+                        className="w-full px-4 py-2 rounded-xl bg-slate-50 border border-slate-100 outline-none text-xs"
+                      />
                       {isUploading && uploadProgress > 0 && whyUsUrl.startsWith('blob:') && (
                         <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
                           <motion.div 
@@ -738,8 +762,22 @@ ACTIONS REQUISES :
                       <div className="space-y-3">
                         <label className="text-sm font-bold text-slate-700 flex items-center gap-2">
                           <ImageIcon size={16} className="text-brand-primary" />
-                          Photo principale du projet
+                          Photo du projet (Upload ou Lien Drive)
                         </label>
+                        <input 
+                          type="text" 
+                          value={editingItem ? editingItem.imageUrl : newItem.imageUrl}
+                          onChange={(e) => {
+                            const val = getDirectDriveLink(e.target.value);
+                            if (editingItem) {
+                              setEditingItem({...editingItem, imageUrl: val});
+                            } else {
+                              setNewItem({...newItem, imageUrl: val});
+                            }
+                          }}
+                          placeholder="Collez un lien Drive ici ou utilisez l'upload ci-dessous"
+                          className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-100 outline-none text-xs"
+                        />
                         {isUploading && uploadProgress > 0 && (
                           <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden mb-2">
                             <motion.div 

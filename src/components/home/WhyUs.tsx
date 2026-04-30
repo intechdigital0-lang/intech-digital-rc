@@ -4,11 +4,11 @@ import { Target, Zap, ShieldCheck, HeartPulse } from 'lucide-react';
 import { settingsService } from '../../lib/firestoreService';
 
 const WhyUs = () => {
-  const [whyUsImg, setWhyUsImg] = useState('https://images.unsplash.com/photo-1573166364524-d9dbfd8bbf83?q=80&w=1000&auto=format&fit=crop');
+  const [whyUsImg, setWhyUsImg] = useState('https://lh3.googleusercontent.com/d/1rkYRGY_IZScQaWNTpPP-Qx7PYvVM3ZYC');
 
   useEffect(() => {
     settingsService.getSettings().then(s => {
-      if (s?.whyUsImageUrl) setWhyUsImg(s.whyUsImageUrl);
+      if (s?.whyUsImageUrl && s.whyUsImageUrl.length > 10) setWhyUsImg(s.whyUsImageUrl);
     });
   }, []);
   const highlights = [
