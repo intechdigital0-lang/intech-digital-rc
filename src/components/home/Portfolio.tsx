@@ -9,6 +9,7 @@ import Icon from '../Icon';
 const Portfolio = () => {
   const [items, setItems] = useState<PortfolioItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadedImages, setLoadedImages] = useState<Record<string, boolean>>({});
   const [selectedCategory, setSelectedCategory] = useState('Tous');
   const [selectedItem, setSelectedItem] = useState<PortfolioItem | null>(null);
   const [currentImageIdx, setCurrentImageIdx] = useState(0);
@@ -220,10 +221,24 @@ const Portfolio = () => {
                   aria-label={`Voir les détails du projet ${item.title}`}
                   className="group relative rounded-3xl overflow-hidden bg-white shadow-lg h-[400px] cursor-pointer"
                 >
+                {/* Loading Skeleton */}
+                {!loadedImages[item.id] && (
+                  <div className="absolute inset-0 bg-slate-100 flex flex-col p-8 overflow-hidden">
+                    <div className="w-full h-full bg-slate-200 animate-pulse rounded-2xl mb-4" />
+                    <div className="space-y-3">
+                      <div className="h-4 bg-slate-200 animate-pulse rounded-full w-24" />
+                      <div className="h-6 bg-slate-200 animate-pulse rounded-full w-48" />
+                    </div>
+                  </div>
+                )}
+                
                 <img
                   src={item.imageUrl}
                   alt={item.title}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  onLoad={() => setLoadedImages(prev => ({ ...prev, [item.id]: true }))}
+                  className={`w-full h-full object-cover transition-all duration-700 group-hover:scale-110 ${
+                    loadedImages[item.id] ? 'opacity-100 scale-100' : 'opacity-0 scale-105'
+                  }`}
                   referrerPolicy="no-referrer"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/40 to-transparent flex flex-col justify-end p-8">

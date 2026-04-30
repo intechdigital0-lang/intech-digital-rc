@@ -25,6 +25,8 @@ export enum OperationType {
 }
 
 function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
+  const isOffline = error instanceof Error && error.message.includes('offline');
+  
   const errInfo = {
     error: error instanceof Error ? error.message : String(error),
     authInfo: {
@@ -35,8 +37,13 @@ function handleFirestoreError(error: unknown, operationType: OperationType, path
     operationType,
     path
   };
-  console.error('Firestore Error: ', JSON.stringify(errInfo));
-  throw new Error(JSON.stringify(errInfo));
+
+  if (!isOffline) {
+    console.error('Firestore Error: ', JSON.stringify(errInfo));
+    throw new Error(JSON.stringify(errInfo));
+  } else {
+    console.warn(`Firestore is currently offline for ${operationType} on ${path}. Retrying automatically...`);
+  }
 }
 
 export const portfolioService = {

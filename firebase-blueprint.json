@@ -35,6 +35,17 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["name", "role", "comment", "rating", "avatarUrl", "createdAt"]
+    },
+    "Admin": {
+      "title": "Admin",
+      "description": "User with administrative privileges",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "email": { "type": "string" },
+        "role": { "type": "string" }
+      },
+      "required": ["userId"]
     }
   },
   "firestore": {
@@ -49,6 +60,10 @@
     "testimonials": {
       "schema": "Testimonial",
       "description": "Client reviews and feedback"
+    },
+    "admins": {
+      "schema": "Admin",
+      "description": "Collection of admin users"
     }
   }
 }

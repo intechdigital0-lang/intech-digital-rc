@@ -144,5 +144,29 @@ export const TESTIMONIALS: Testimonial[] = [
     comment: 'Professionnalisme et résultats concrets. La gestion de nos réseaux sociaux est désormais entre de bonnes mains.',
     rating: 4,
     avatarUrl: 'https://images.unsplash.com/photo-1506277886164-e25aa3f4ef7f?q=80&w=150&auto=format&fit=crop'
+  },
+  {
+    id: '4',
+    name: 'Julie Masengo',
+    role: 'Event Designer',
+    comment: 'L\'identité visuelle créée par Intech Digital pour nos événements a reçu des compliments unanimes.',
+    rating: 5,
+    avatarUrl: 'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?q=80&w=150&auto=format&fit=crop'
+  },
+  {
+    id: '5',
+    name: 'Patrice Ngoyi',
+    role: 'Directeur LogisKin',
+    comment: 'Une refonte de marque qui nous a permis de nous positionner sur le marché international avec succès.',
+    rating: 5,
+    avatarUrl: 'https://images.unsplash.com/photo-1516248676881-5b71944615ea?q=80&w=150&auto=format&fit=crop'
+  },
+  {
+    id: '6',
+    name: 'Alain Kabeya',
+    role: 'Co-fondateur Fintech RDC',
+    comment: 'Leur expertise en marketing digital a été déterminante pour la réussite du lancement de notre application.',
+    rating: 5,
+    avatarUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=150&auto=format&fit=crop'
   }
 ];
