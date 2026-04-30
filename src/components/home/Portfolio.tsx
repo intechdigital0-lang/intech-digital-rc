@@ -349,27 +349,27 @@ const Portfolio = () => {
               </div>
 
               {/* Details Section */}
-              <div className="w-full lg:w-2/5 h-[60vh] sm:h-[50vh] lg:h-full bg-white flex flex-col p-8 md:p-12 overflow-y-auto custom-scrollbar">
-                <div className="mb-10">
+              <div className="w-full lg:w-2/5 h-[60vh] sm:h-[50vh] lg:h-full bg-white flex flex-col p-8 md:p-12 overflow-y-auto custom-scrollbar text-center lg:text-left items-center lg:items-start">
+                <div className="mb-10 w-full">
                   <span className="inline-block px-3 py-1 rounded-lg bg-brand-secondary/10 text-brand-primary text-xs font-bold uppercase tracking-widest mb-4">
                     {selectedItem.category}
                   </span>
                   <h3 className="text-3xl md:text-4xl font-display font-bold text-slate-900 leading-tight mb-6">
                     {selectedItem.title}
                   </h3>
-                  <p className="text-slate-600 text-lg leading-relaxed">
+                  <p className="text-slate-600 text-lg leading-relaxed max-w-md mx-auto lg:mx-0">
                     {selectedItem.description || "Intech Digital DRC a accompagné ce client dans sa transformation digitale avec une solution sur mesure alliant esthétique et performance."}
                   </p>
                 </div>
 
                 {/* Technologies */}
                 {selectedItem.technologies && selectedItem.technologies.length > 0 && (
-                  <div className="mb-10">
-                    <h4 className="text-sm font-bold text-slate-900 uppercase tracking-widest mb-4 flex items-center gap-2">
+                  <div className="mb-10 w-full">
+                    <h4 className="text-sm font-bold text-slate-900 uppercase tracking-widest mb-4 flex items-center justify-center lg:justify-start gap-2">
                       <span className="w-1 h-3 bg-brand-primary rounded-full" />
                       Expertise technique
                     </h4>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap justify-center lg:justify-start gap-2">
                       {selectedItem.technologies.map((tech) => (
                         <span 
                           key={tech} 
@@ -385,14 +385,14 @@ const Portfolio = () => {
 
                 {/* Testimonial */}
                 {selectedItem.testimonial && (
-                  <div className="mt-auto pt-10 border-t border-slate-100">
-                    <div className="relative p-6 rounded-3xl bg-slate-50/50">
+                  <div className="mt-auto pt-10 border-t border-slate-100 w-full">
+                    <div className="relative p-6 rounded-3xl bg-slate-50/50 flex flex-col items-center lg:items-start text-center lg:text-left">
                       <Quote className="absolute -top-3 -left-3 w-8 h-8 text-brand-primary/20" />
                       <p className="text-slate-700 italic text-lg leading-relaxed mb-6">
                         "{selectedItem.testimonial.comment}"
                       </p>
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-full bg-brand-secondary text-white flex items-center justify-center font-bold shadow-lg shadow-brand-secondary/20">
+                      <div className="flex flex-col lg:flex-row items-center gap-4">
+                        <div className="w-12 h-12 rounded-full bg-brand-secondary text-white flex items-center justify-center font-bold shadow-lg shadow-brand-secondary/20 shrink-0">
                           {selectedItem.testimonial.name.split(' ').map(n => n[0]).join('')}
                         </div>
                         <div>

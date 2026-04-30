@@ -53,16 +53,16 @@ const Services = () => {
             >
               <div className="absolute top-0 right-0 w-32 h-32 bg-brand-primary/5 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-700 ease-in-out" />
               
-              <div className="flex items-center gap-4 mb-6 relative z-10">
-                <div className="w-14 h-14 bg-brand-secondary/5 rounded-2xl flex items-center justify-center text-brand-primary group-hover:bg-brand-primary group-hover:text-white group-hover:rotate-6 transition-all duration-300 shadow-sm group-hover:shadow-brand-primary/40">
+              <div className="flex flex-col sm:flex-row items-center sm:items-start lg:items-center gap-4 mb-6 relative z-10">
+                <div className="w-14 h-14 bg-brand-secondary/5 rounded-2xl flex items-center justify-center text-brand-primary group-hover:bg-brand-primary group-hover:text-white group-hover:rotate-6 transition-all duration-300 shadow-sm group-hover:shadow-brand-primary/40 shrink-0">
                   <Icon name={service.iconName} size={28} />
                 </div>
-                <h3 className="text-2xl font-bold text-slate-900 leading-tight group-hover:text-brand-primary transition-colors duration-300">
+                <h3 className="text-2xl font-bold text-slate-900 leading-tight group-hover:text-brand-primary transition-colors duration-300 text-center sm:text-left">
                   {service.title}
                 </h3>
               </div>
               
-              <p className="text-lg text-slate-600 mb-8 leading-relaxed relative z-10">
+              <p className="text-lg text-slate-600 mb-8 leading-relaxed relative z-10 text-center sm:text-left">
                 {service.description}
               </p>
               
